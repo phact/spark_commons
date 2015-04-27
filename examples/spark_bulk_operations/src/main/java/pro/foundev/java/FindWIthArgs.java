@@ -21,15 +21,15 @@ import org.apache.spark.api.java.function.Function;
 
 import java.util.List;
 
-public class FindWithArgs extends AbstractCassandraConnectorClass {
+public class FindWIthArgs extends AbstractCassandraConnectorClass {
 
     private final String[] args;
 
     public static void main(String[] args){
-        new FindWithArgs(args).run();
+        new FindWIthArgs(args).run();
     }
 
-    public FindWithArgs(String[] args) {
+    public FindWIthArgs(String[] args) {
 
         this.args = args;
     }
