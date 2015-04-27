@@ -17,30 +17,27 @@ package pro.foundev.messaging;
 
 import com.rabbitmq.client.*;
 import org.apache.spark.storage.StorageLevel;
-import org.apache.spark.streaming.receiver.Receiver;
 
 import java.io.IOException;
 
 
-public class RabbitMQReceiver extends Receiver<String> {
+public class RabbitMQReceiver extends AbstractQueueReceiver {
 
+    private String host;
+    private  String queueName;
     private final StorageLevel storageLevel;
-    private final String host;
-    private final String qname;
     private Connection connection = null;
     private Channel channel = null;
 
-    public RabbitMQReceiver(StorageLevel storageLevel, String host, String qname) {
-        super(storageLevel);
+    public RabbitMQReceiver() {
+        super(StorageLevel.MEMORY_ONLY());
+        this.storageLevel = StorageLevel.MEMORY_ONLY();
         //probably wrong
-        this.storageLevel  = storageLevel;
-        this.host = host;
-        this.qname = qname;
     }
 
     @Override
     public StorageLevel storageLevel() {
-        return storageLevel;
+        return this.storageLevel;
     }
 
     @Override
@@ -59,7 +56,7 @@ public class RabbitMQReceiver extends Receiver<String> {
 
                 }
             };
-            channel.basicConsume(qname, true, consumer);
+            channel.basicConsume(queueName, true, consumer);
 
         } catch (IOException e) {
             restart("error connecting to message queue", e);
@@ -84,5 +81,15 @@ public class RabbitMQReceiver extends Receiver<String> {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    @Override
+    public void setQueueName(String qname) {
+        this.queueName = qname;
     }
 }

@@ -17,6 +17,7 @@ package pro.foundev
 
 import pro.foundev.calculations.{LogCalculator, LogCalculatorImpl}
 import pro.foundev.ingest.Loader
+import pro.foundev.messaging.RabbitMQReceiver
 import pro.foundev.random.BenchmarkSeeding
 import pro.foundev.reporting.RunTimeOptions
 import pro.foundev.strategies.{JobSubmissionStrategy, BenchmarkStrategy, SparkStreamingStrategy}
@@ -60,7 +61,7 @@ class BenchmarkLauncher {
     val benchmarkSeeding: BenchmarkSeeding = new BenchmarkSeeding(rowsToInsert)
 
     val sparkStreamingStrategy: SparkStreamingStrategy = new SparkStreamingStrategy(master, calc,
-      benchmarkSeeding)
+      benchmarkSeeding, new RabbitMQReceiver)
     val sparkStreamingReport = sparkStreamingStrategy.run(runs)
     sparkStreamingStrategy.close()
     sparkStreamingStrategy.shutDown()

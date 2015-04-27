@@ -16,23 +16,35 @@
 package pro.foundev.strategies
 
 import com.datastax.driver.core.Cluster
+import org.apache.spark.storage.StorageLevel
 import org.scalatest.FunSpec
 import org.scalatest.mock.MockitoSugar
 import pro.foundev.Configuration
 import pro.foundev.calculations.LogCalculatorImpl
-import pro.foundev.dto.SessionReport
 import pro.foundev.ingest.SchemaCreation
-import pro.foundev.messaging.LogPublisher
+import pro.foundev.messaging.{AbstractQueueReceiver, LogPublisher}
 import pro.foundev.random.BenchmarkSeeding
 
 import scala.collection.mutable
 
 class MockPublisher extends LogPublisher{
-  var list: mutable.MutableList[SessionReport] = new mutable.MutableList[SessionReport]()
-  override def publish(report: SessionReport): Unit = {
-    list.+=(report)
+  var list: mutable.MutableList[String] = new mutable.MutableList[String]()
+
+  override def publish(message: String): Unit = {
+    list.+=(message)
+  }
+}
+
+class MockReceiver() extends AbstractQueueReceiver(StorageLevel.MEMORY_ONLY) {
+
+  override def onStart() = {
+  }
+  override def onStop() = {
   }
 
+  override def setHost(host: String): Unit = {}
+
+  override def setQueueName(queueName: String): Unit = {}
 }
 class SparkStreamingStrategySpec extends FunSpec with MockitoSugar {
   describe("SparkStreamingStrategy"){
@@ -54,11 +66,13 @@ class SparkStreamingStrategySpec extends FunSpec with MockitoSugar {
 
       cluster.close()
       describe("on init") {
-        val host = "local[1]"
+        val host = "local[2]"
         val logCalculator = new LogCalculatorImpl()
         /*val publisher = mock[ZeroMQPublisher]*/
         val publisher = new MockPublisher
-        val sparkStreamingStrategy = new SparkStreamingStrategy(host, logCalculator, new BenchmarkSeeding(1000))
+        val receiver = new MockReceiver
+        val sparkStreamingStrategy = new SparkStreamingStrategy(host, logCalculator, new BenchmarkSeeding(1000),
+          receiver)
         it("stores master") {
           assert(sparkStreamingStrategy.getMaster === host)
         }

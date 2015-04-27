@@ -20,19 +20,19 @@ import com.datastax.spark.connector.cql.CassandraConnector
 import com.rabbitmq.client.{ConnectionFactory, QueueingConsumer}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
-import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.{Milliseconds, StreamingContext}
-import pro.foundev.calculations.{LogCalculatorImpl, CheapLogCalculator, LogCalculator}
+import pro.foundev.calculations.{CheapLogCalculator, LogCalculator, LogCalculatorImpl}
 import pro.foundev.cassandra.CassandraRepository
 import pro.foundev.dto.IpLog
-import pro.foundev.messaging.{RabbitMQPublisher, RabbitMQReceiver}
+import pro.foundev.messaging.{AbstractQueueReceiver, RabbitMQPublisher}
 import pro.foundev.random.BenchmarkSeeding
 
 
 class SparkStreamingStrategy(master:String,
                              logCalculator: LogCalculator,
-                             benchmarkSeeding: BenchmarkSeeding)
+                             benchmarkSeeding: BenchmarkSeeding,
+                              receiver: AbstractQueueReceiver)
   extends BenchmarkStrategy(master) with Serializable{
   val sc: StreamingContext = initStream
   val topic = "benchmark"
@@ -99,8 +99,9 @@ class SparkStreamingStrategy(master:String,
     val sc = new StreamingContext(sparkConf, Milliseconds(100))
     val repo = new CassandraRepository
     val connector = CassandraConnector(sparkConf)
-    val logs: DStream[String] = sc.receiverStream(new RabbitMQReceiver(StorageLevel.MEMORY_ONLY, master,
-      "benchmark_part_queue"))
+    receiver.setHost(master)
+    receiver.setQueueName("benchmark_part_queue")
+    val logs: DStream[String] = sc.receiverStream(receiver)
     val cachedMessages = logs.cache()
     val states = cachedMessages.filter(m=>m.forall(!_.isDigit))
     val localReportSessionExchange = "report_session"
