@@ -2,8 +2,11 @@ package pro.foundev.commons.benchmarking
 
 import org.apache.commons.lang.time.StopWatch
 
-class BenchmarkRunner (benchmarks: Benchmark*){
+class BenchmarkRunner (val benchmarks: Benchmark*){
   def exec: Map[String, Seq[BenchmarkReport]] = {
+    if (benchmarks.length==0) {
+      throw new IllegalArgumentException("need to have some benchmarks to actually run")
+    }
     benchmarks.map(b => {
       val watch = new StopWatch()
       watch.start()
