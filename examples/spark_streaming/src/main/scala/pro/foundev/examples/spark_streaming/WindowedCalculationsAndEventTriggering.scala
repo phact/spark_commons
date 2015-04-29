@@ -62,13 +62,18 @@ class WindowedCalculationsAndEventTriggering(master: String )
       .reduceByKey(_ + _)
       .filter(_._2 > BigDecimal(999))
       .foreachRDD(rdd =>
-      rdd.foreach(row => {
-        println(s"Warning about user with taxId ${row._1} they've submitted ${row._2} in the past 60 seconds")
+      rdd.foreachPartition(rowIterator => {
         connector.withSessionDo(session => {
-          val now = UUIDs.timeBased()
+          //preparing per partition, this is not needed but is likely much more direct
           val prepared = session.prepare(s"INSERT INTO ${keySpaceName}.${warningsTableName} (ssn, id, amount, rule)" +
             "values (?,?,?,'OVER_DOLLAR_AMOUNT')")
-          session.execute(prepared.bind(row._1, now, row._2.bigDecimal))
+          while (rowIterator.hasNext) {
+            val row = rowIterator.next()
+            println(s"Warning about user with taxId ${row._1} they've submitted ${row._2} in the past 60 seconds")
+            //FIXME: need to handle time better
+            val now = UUIDs.timeBased()
+            session.execute(prepared.bind(row._1, now, row._2.bigDecimal))
+          }
         })
       }
 

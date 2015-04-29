@@ -27,14 +27,20 @@ import java.io.IOException;
 
         private final StorageLevel storageLevel;
         private final String master;
+        private final String queueName;
         private Connection connection = null;
         private Channel channel = null;
 
-        public RabbitMQReceiver(StorageLevel storageLevel, String master) {
+        public RabbitMQReceiver(StorageLevel storageLevel, String master){
+            this(storageLevel, master, "warnings");
+        }
+
+        public RabbitMQReceiver(StorageLevel storageLevel, String master, String queueName) {
             super(storageLevel);
             //probably wrong
             this.storageLevel  = storageLevel;
             this.master = master;
+            this.queueName = queueName;
         }
 
         @Override
@@ -47,12 +53,11 @@ import java.io.IOException;
             ConnectionFactory factory = new ConnectionFactory();
             factory.setHost(master);
             factory = new ConnectionFactory();
-            String qname = "warnings";
             try {
                 connection = factory.newConnection();
                 channel = connection.createChannel();
                 String queue = channel.queueDeclare().getQueue();
-                channel.queueBind(queue, qname, "");
+                channel.queueBind(queue, queueName, "");
 
                 Consumer consumer = new DefaultConsumer(channel){
                     @Override

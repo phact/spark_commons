@@ -29,15 +29,14 @@ import org.apache.spark.SparkContext._
 import pro.foundev.examples.spark_streaming.messaging.RabbitMqCapable
 import pro.foundev.examples.spark_streaming.utils.Args
 
-object SparkSqlQueryEngine {
+object SqlQueryEngine {
   def main(args: Array[String]) = {
     val master = Args.parseMaster(args)
-    new SparkSqlQueryEngine(master).startJob()
+    new SqlQueryEngine(master).startJob()
   }
 }
-case class SessionLog(timeStamp: Date, level: String, source: String, message: String)
 
-class SparkSqlQueryEngine(master: String) extends RabbitMqCapable(master, "spark_sql_query_engine"){
+class SqlQueryEngine(master: String) extends RabbitMqCapable(master, "spark_sql_query_engine"){
   override def createContext(): StreamingContext = {
     val (dstream, ssc, connector) = connectToExchange()
     val csc = new CassandraSQLContext(ssc.sparkContext)
@@ -48,7 +47,7 @@ class SparkSqlQueryEngine(master: String) extends RabbitMqCapable(master, "spark
       (message._1, csc.sql(message._2)
         .map(row=>row.toString())))
 
-    val messages = dstream
+    dstream
       .map(x=>x.split(":"))
       .map(x=>(x(0), x(1)))
       .transform(x=>schemaConvert(x))
