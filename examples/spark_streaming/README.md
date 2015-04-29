@@ -18,7 +18,7 @@ On one of the nodes in the cluster do the following
  
 1. make sure rabbitmq 3.4.4 is installed on the machine you plan to execute these commands from
 2. copy target/scala-2.10/dse_spark_streaming_examples-assembly-0.4.0.jar to the cluster ( you may have to run sbt assembly first)
-3. java -cp target/scala-2.10/dse_spark_streaming_examples-assembly-0.4.0.jar pro.foundev.javaexamples.RabbitMQEmitWarnings
+3. java -cp target/scala-2.10/dse_spark_streaming_examples-assembly-0.4.0.jar pro.foundev.examples.spark_streaming.java.messaging.RabbitMQEmitWarnings
 4. sudo dse spark-submit --class pro.foundev.WindowedCalculationsAndEventTriggering dse_spark_streaming_examples-assembly-0.4.0.jar
 
 

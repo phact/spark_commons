@@ -13,6 +13,7 @@ resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
 
 libraryDependencies ++= Seq(
   "org.apache.spark" % "spark-core_2.10" % Spark % "provided",
+  "org.apache.spark" % "spark-sql_2.10" % Spark % "provided",
   "org.apache.spark" % "spark-streaming_2.10" % Spark % "provided",
   "org.apache.spark" % "spark-streaming-kafka_2.10" % Spark % "provided",
   "com.rabbitmq" % "amqp-client" % "3.4.4",
