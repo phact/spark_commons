@@ -43,7 +43,7 @@ class SqlQueryEngineOnWindows(master: String)
     val sqlContext = new SQLContext(ssc.sparkContext)
     val format = new SimpleDateFormat("yyyy-MM-dd")
     val queryStream = ssc
-      .receiverStream(new RabbitMQReceiver(StorageLevel.MEMORY_AND_DISK_2, master, "queries))
+      .receiverStream(new RabbitMQReceiver(StorageLevel.MEMORY_AND_DISK_2, master, "queries"))
     import sqlContext.createSchemaRDD
 
     //every 10 seconds look at the past 60 seconds
@@ -58,8 +58,13 @@ class SqlQueryEngineOnWindows(master: String)
       (taxId, (name, merchant, amount, transactionDate))
     }).cache()
 
-    queryStream.foreachRDD(queryRDD=>{
-      queryRDD.foreach(query=>{
+    queryStream
+      .map(x=>x.split(":"))
+      .map(x=>(x(0), x(1)))
+      .foreachRDD(queryRDD=>{
+      queryRDD.foreach(queryMessage=>{
+        val queryId = queryMessage._1
+        val query = queryMessage._2
         transactions.transform(x=> {
           x.registerTempTable("transactions")
           sqlContext.sql(query)
