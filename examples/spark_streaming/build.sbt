@@ -35,6 +35,8 @@ run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in (Comp
 
 assemblySettings
 
+test in assembly := {}
+
 mergeStrategy in assembly := {
   case PathList("META-INF", "ECLIPSEF.RSA", xs @ _*)         => MergeStrategy.discard
   case PathList("META-INF", "mailcap", xs @ _*)         => MergeStrategy.discard

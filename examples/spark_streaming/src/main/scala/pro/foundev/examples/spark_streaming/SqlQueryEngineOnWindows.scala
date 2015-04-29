@@ -18,9 +18,7 @@
 package pro.foundev.examples.spark_streaming
 
 import _root_.java.text.SimpleDateFormat
-import _root_.java.util.Date
 
-import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.{Seconds, StreamingContext}
@@ -36,6 +34,15 @@ object SqlQueryEngineOnWindows {
   }
 }
 
+/**
+ * - This spark job requires CFS to be in place and will place a sql_query_engine_on_windows
+ * checkpoint directory at the base level of CFS.
+ * - RabbitMQ dependencies include an exchange named warnings and another named queries.
+ * - I've chosen to also have output go to the console instead of to a message queue. There are
+ * other examples in the code base demonstrating the output to queue technique such as
+ * pro.foundev.examples.spark_streaming.java.interactive.smartconsumer.ResponseWriter
+ * @param master
+ */
 class SqlQueryEngineOnWindows(master: String)
   extends RabbitMqCapable(master, "sql_query_engine_on_windows"){
   override def createContext(): StreamingContext = {
@@ -46,7 +53,11 @@ class SqlQueryEngineOnWindows(master: String)
       .receiverStream(new RabbitMQReceiver(StorageLevel.MEMORY_AND_DISK_2, master, "queries"))
     import sqlContext.createSchemaRDD
 
-    //every 10 seconds look at the past 60 seconds
+    /**
+     *  runs every 10 seconds look at the past 60 seconds.
+     *  the required message format is taxId, name, merchant name, dollar amount, transactionDate
+     *  example 999-99-9999, John Smith, Staples, 120.34, 2015-01-30
+     */
     val transactions = dstream.window(Seconds(60), Seconds(10)).map(line=> {
       val columns = line.split(",")
       val taxId = columns(0)
@@ -58,17 +69,27 @@ class SqlQueryEngineOnWindows(master: String)
       (taxId, (name, merchant, amount, transactionDate))
     }).cache()
 
+    /**
+     * requires messages to be in the format of queryId:query
+     * this assumes the query is on the transactions table
+     * for example: 1:SELECT count(*) as tran_count from transactions
+     */
     queryStream
       .map(x=>x.split(":"))
       .map(x=>(x(0), x(1)))
       .foreachRDD(queryRDD=>{
-      queryRDD.foreach(queryMessage=>{
-        val queryId = queryMessage._1
-        val query = queryMessage._2
-        transactions.transform(x=> {
-          x.registerTempTable("transactions")
-          sqlContext.sql(query)
-        }).print()
+      queryRDD.foreachPartition(queryIter=>{
+        while(queryIter.hasNext) {
+          val queryMessage = queryIter.next()
+          val queryId = queryMessage._1
+          println("results for queryId " + queryId)
+          println("------------------------------")
+          val query = queryMessage._2
+          transactions.transform(x => {
+            x.registerTempTable("transactions")
+            sqlContext.sql(query)
+          }).print()
+        }
       })
      })
     ssc

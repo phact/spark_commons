@@ -29,9 +29,9 @@ abstract class RabbitMqCapable(master: String, checkPointDirectory: String) exte
   def connectToExchange(): (DStream[String], StreamingContext, CassandraConnector) = {
     val context = connect(master)
     val ssc = context.streamingContext
+    ssc.checkpoint(checkPointDirectory)
     val customReceiverStream = ssc
       .receiverStream(new RabbitMQReceiver(StorageLevel.MEMORY_AND_DISK_2, master))
-    ssc.checkpoint(checkPointDirectory)
     val dstream: DStream[String] = customReceiverStream
     (dstream, context.streamingContext, context.connector)
   }
@@ -40,7 +40,7 @@ abstract class RabbitMqCapable(master: String, checkPointDirectory: String) exte
 
   def startJob() = {
     val context = StreamingContext.getOrCreate(
-      "cfs:///" + checkPointDirectory, createContext _)
+      "cfs:///" + checkPointDirectory, ()=>createContext())
     context.start()
     context.awaitTermination()
   }

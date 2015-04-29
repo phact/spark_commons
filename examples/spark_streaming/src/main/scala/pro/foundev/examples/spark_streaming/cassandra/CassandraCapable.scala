@@ -17,11 +17,13 @@
 
 package pro.foundev.examples.spark_streaming.cassandra
 
+import com.datastax.bdp.spark.DseSparkConfHelper
 import com.datastax.spark.connector.cql.CassandraConnector
 import scala.collection.JavaConversions._
 import com.datastax.spark.connector.streaming._
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Milliseconds, StreamingContext}
+import DseSparkConfHelper._
 
 trait CassandraCapable {
 
@@ -34,14 +36,16 @@ trait CassandraCapable {
   def connect(master: String): CassandraContext = {
 
     withAuth = true
-    var conf = new SparkConf(true)
+    var conf = (new SparkConf()
       .set("spark.cassandra.connection.host", master)
       .setMaster("spark:/"+ master+":7077")
       .setAppName("Windowed_Rapid_Transaction_Check")
+    )
     if (withAuth){
       conf = conf.set("spark.cassandra.auth.username", username)
       .set("spark.cassandra.auth.password", password)
     }
+    conf = conf.forDse
 
     val connector = CassandraConnector(conf)
     connector.withSessionDo(session => {
