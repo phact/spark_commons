@@ -9,6 +9,7 @@ lazy val commons = (project in file("commons")).
 
 lazy val benchmarks = (project in file("benchmarks")).
   settings(commonSettings: _*)
+  .dependsOn("commons")
 
 lazy val examples = (project in file("examples")).
   settings(commonSettings: _*)
