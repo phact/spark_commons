@@ -38,7 +38,7 @@ trait CassandraCapable {
     withAuth = true
     var conf = (new SparkConf()
       .set("spark.cassandra.connection.host", master)
-      .setMaster("spark:/"+ master+":7077")
+      .setMaster("spark://"+ master+":7077")
       .setAppName("Windowed_Rapid_Transaction_Check")
     )
     if (withAuth){

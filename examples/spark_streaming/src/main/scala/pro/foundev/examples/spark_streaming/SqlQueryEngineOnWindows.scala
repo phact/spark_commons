@@ -17,9 +17,8 @@
 
 package pro.foundev.examples.spark_streaming
 
-import _root_.java.text.SimpleDateFormat
-
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql._
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import pro.foundev.examples.spark_streaming.java.messaging.RabbitMQReceiver
@@ -27,6 +26,7 @@ import pro.foundev.examples.spark_streaming.messaging.RabbitMqCapable
 import pro.foundev.examples.spark_streaming.utils.Args
 
 
+case class Transaction(taxId: String, name: String, merchant:String, amount: Double, transactionDate: String )
 object SqlQueryEngineOnWindows {
   def main(args: Array[String])  = {
     val master = Args.parseMaster(args)
@@ -44,54 +44,78 @@ object SqlQueryEngineOnWindows {
  * @param master
  */
 class SqlQueryEngineOnWindows(master: String)
-  extends RabbitMqCapable(master, "sql_query_engine_on_windows"){
+  extends RabbitMqCapable(master, "sql_query_engine_on_windows") {
   override def createContext(): StreamingContext = {
     val (dstream, ssc, connector) = connectToExchange()
     val sqlContext = new SQLContext(ssc.sparkContext)
-    val format = new SimpleDateFormat("yyyy-MM-dd")
     val queryStream = ssc
       .receiverStream(new RabbitMQReceiver(StorageLevel.MEMORY_AND_DISK_2, master, "queries"))
-    import sqlContext.createSchemaRDD
+
 
     /**
-     *  runs every 10 seconds look at the past 60 seconds.
-     *  the required message format is taxId, name, merchant name, dollar amount, transactionDate
-     *  example 999-99-9999, John Smith, Staples, 120.34, 2015-01-30
+     * runs every 5 seconds look at the past 60 seconds.
+     * the required message format is taxId, name, merchant name, dollar amount, transactionDate
+     * example 999-99-9999, John Smith, Staples, 120.34, 2015-01-30
      */
-    val transactions = dstream.window(Seconds(60), Seconds(10)).map(line=> {
+    val transactions = dstream.window(Seconds(60), Seconds(5)).map(line => {
       val columns = line.split(",")
       val taxId = columns(0)
       val name = columns(1)
       val merchant = columns(2)
-      val amount = BigDecimal(columns(3))
-      val transactionDate = format.parse(columns(4))
+      val amount = columns(3).toDouble
+      val transactionDate = columns(4)
       println(line)
-      (taxId, (name, merchant, amount, transactionDate))
-    }).cache()
+ //     Row(taxId, name, merchant, amount, transactionDate)
+      new Transaction(taxId, name, merchant, amount, transactionDate)
+    })
+/*
+      val schema = new StructType(Seq(
+          StructField("taxId", StringType, true),
+          StructField("name", StringType, true),
+          StructField("merchant", StringType, true),
+          StructField("amount", DoubleType, true),
+          StructField("transactionDate", StringType, true) //FIXME switch to date
+        ))
 
+    val transSchemaRDD = transactions.transform(tranRDD=>{
+      val transSchemaRDD: SchemaRDD = sqlContext.applySchema(tranRDD, schema)
+      transSchemaRDD.registerTempTable("transactions")
+      transSchemaRDD
+    })
+*/
+    //import sqlContext.createSchemaRDD
+    //registerTempTable("transactions")
     /**
      * requires messages to be in the format of queryId:query
      * this assumes the query is on the transactions table
      * for example: 1:SELECT count(*) as tran_count from transactions
      */
-    queryStream
-      .map(x=>x.split(":"))
-      .map(x=>(x(0), x(1)))
-      .foreachRDD(queryRDD=>{
-      queryRDD.foreachPartition(queryIter=>{
-        while(queryIter.hasNext) {
-          val queryMessage = queryIter.next()
-          val queryId = queryMessage._1
-          println("results for queryId " + queryId)
-          println("------------------------------")
-          val query = queryMessage._2
-          transactions.transform(x => {
-            x.registerTempTable("transactions")
-            sqlContext.sql(query)
-          }).print()
-        }
+    val queries = queryStream
+
+    /**
+     * Combines both dstreams to a given single stream
+     */
+     /*queries.transformWith(transactions, (queryRDD, transRDD: RDD[Transaction])=>{
+      queryRDD.map(queryMessage=>{
+     /*   val schema = new StructType(Seq(
+          StructField("taxId", StringType, true),
+          StructField("name", StringType, true),
+          StructField("merchant", StringType, true),
+          StructField("amount", DoubleType, true),
+          StructField("transactionDate", StringType, true) //FIXME switch to date
+        ))
+        val transSchemaRDD: SchemaRDD = sqlContext.applySchema(transRDD, schema)
+
+        */
+        sqlContext.sql(queryMessage)
       })
-     })
+     }).print()
+     */
+    //import sqlContext.createSchemaRDD
+    queries.transformWith(transactions, (queriesRDD: RDD[String], t: RDD[Transaction])=>{
+      queriesRDD.map(q=>t.name=q)
+    }).print()
+
     ssc
   }
 }

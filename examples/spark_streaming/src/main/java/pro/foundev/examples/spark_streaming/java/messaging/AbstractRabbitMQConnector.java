@@ -21,6 +21,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.cql.CassandraConnector;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.CassandraRow;
+import com.datastax.spark.connector.japi.CassandraStreamingJavaUtil;
 import com.datastax.spark.connector.japi.SparkContextJavaFunctions;
 import com.datastax.spark.connector.japi.rdd.CassandraJavaRDD;
 import org.apache.spark.SparkConf;
@@ -93,7 +94,7 @@ public abstract class AbstractRabbitMQConnector implements Serializable {
             followers3.add("mike");
             session.execute(preparedStatement.bind(2, "mike", followers3));
         }
-        SparkContextJavaFunctions javaFunc = CassandraJavaUtil.javaFunctions(sc);
+        SparkContextJavaFunctions javaFunc = CassandraStreamingJavaUtil.javaFunctions(sc);
         CassandraJavaRDD<CassandraRow> rdd = javaFunc
                 .cassandraTable(getKeySpaceName(), getPrimaryTableName());
          JavaDStream<String> customReceiverStream = sc
