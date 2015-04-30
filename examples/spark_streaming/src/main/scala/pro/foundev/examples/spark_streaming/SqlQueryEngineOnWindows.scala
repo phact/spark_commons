@@ -118,9 +118,10 @@ class SqlQueryEngineOnWindows(master: String)
       val query = queries(0)
         import sqlContext.createSchemaRDD
         t.registerTempTable("transactions")
-        t
+        t.map(x=>"registered")
       }else{
-      t}
+        t.map(x=>"not registered")
+      }
     }).print()
 
     ssc
