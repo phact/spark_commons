@@ -67,7 +67,7 @@ class SqlQueryEngineOnWindows(master: String)
       println(line)
  //     Row(taxId, name, merchant, amount, transactionDate)
       new Transaction(taxId, name, merchant, amount, transactionDate)
-    })
+    }).cache()
 /*
       val schema = new StructType(Seq(
           StructField("taxId", StringType, true),
@@ -90,7 +90,7 @@ class SqlQueryEngineOnWindows(master: String)
      * this assumes the query is on the transactions table
      * for example: 1:SELECT count(*) as tran_count from transactions
      */
-    val queries = queryStream
+    val queries = queryStream.cache()
 
     /**
      * Combines both dstreams to a given single stream
@@ -113,16 +113,17 @@ class SqlQueryEngineOnWindows(master: String)
      */
     //import sqlContext.createSchemaRDD
     queries.transformWith(transactions, (queriesRDD: RDD[String], t: RDD[Transaction])=>{
+      import sqlContext.createSchemaRDD
+      t.registerTempTable("transactions")
       val queries = queriesRDD.collect()
       if(queries.length>0){
       val query = queries(0)
-        import sqlContext.createSchemaRDD
-        t.registerTempTable("transactions")
-        t.map(x=>"registered")
+        sqlContext.sql(query).cache()
       }else{
-        t.map(x=>"not registered")
+        sqlContext.sql("select * from transactions").cache()
       }
-    }).print()
+    }).cache()
+      .print()
 
     ssc
   }
