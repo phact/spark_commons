@@ -113,7 +113,13 @@ class SqlQueryEngineOnWindows(master: String)
      */
     //import sqlContext.createSchemaRDD
     queries.transformWith(transactions, (queriesRDD: RDD[String], t: RDD[Transaction])=>{
-      queriesRDD.map(q=>t.name=q)
+      val queries = queriesRDD.collect()
+      if(queries.length>0){
+      val query = queries(0)
+      t.map(x=>{
+        t.name = query
+      })}
+      t
     }).print()
 
     ssc
