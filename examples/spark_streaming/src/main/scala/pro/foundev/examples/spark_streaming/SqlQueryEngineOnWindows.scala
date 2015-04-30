@@ -116,10 +116,11 @@ class SqlQueryEngineOnWindows(master: String)
       val queries = queriesRDD.collect()
       if(queries.length>0){
       val query = queries(0)
-      t.map(x=>{
-        t.name = query
-      })}
-      t
+        import sqlContext.createSchemaRDD
+        t.registerTempTable("transactions")
+        t
+      }else{
+      t}
     }).print()
 
     ssc
