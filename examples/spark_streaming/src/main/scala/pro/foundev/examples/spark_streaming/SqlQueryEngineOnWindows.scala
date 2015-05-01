@@ -65,53 +65,19 @@ class SqlQueryEngineOnWindows(master: String)
       val amount = columns(3).toDouble
       val transactionDate = columns(4)
       println(line)
- //     Row(taxId, name, merchant, amount, transactionDate)
       new Transaction(taxId, name, merchant, amount, transactionDate)
     }).cache()
-/*
-      val schema = new StructType(Seq(
-          StructField("taxId", StringType, true),
-          StructField("name", StringType, true),
-          StructField("merchant", StringType, true),
-          StructField("amount", DoubleType, true),
-          StructField("transactionDate", StringType, true) //FIXME switch to date
-        ))
-
-    val transSchemaRDD = transactions.transform(tranRDD=>{
-      val transSchemaRDD: SchemaRDD = sqlContext.applySchema(tranRDD, schema)
-      transSchemaRDD.registerTempTable("transactions")
-      transSchemaRDD
-    })
-*/
-    //import sqlContext.createSchemaRDD
-    //registerTempTable("transactions")
     /**
      * requires messages to be in the format of queryId:query
      * this assumes the query is on the transactions table
      * for example: 1:SELECT count(*) as tran_count from transactions
+     * FIXME: need to add this back
      */
     val queries = queryStream.cache()
 
     /**
      * Combines both dstreams to a given single stream
      */
-     /*queries.transformWith(transactions, (queryRDD, transRDD: RDD[Transaction])=>{
-      queryRDD.map(queryMessage=>{
-     /*   val schema = new StructType(Seq(
-          StructField("taxId", StringType, true),
-          StructField("name", StringType, true),
-          StructField("merchant", StringType, true),
-          StructField("amount", DoubleType, true),
-          StructField("transactionDate", StringType, true) //FIXME switch to date
-        ))
-        val transSchemaRDD: SchemaRDD = sqlContext.applySchema(transRDD, schema)
-
-        */
-        sqlContext.sql(queryMessage)
-      })
-     }).print()
-     */
-    //import sqlContext.createSchemaRDD
     queries.transformWith(transactions, (queriesRDD: RDD[String], t: RDD[Transaction])=>{
       import sqlContext.createSchemaRDD
       t.registerTempTable("transactions")
