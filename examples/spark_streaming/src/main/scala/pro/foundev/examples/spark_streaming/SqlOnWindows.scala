@@ -17,12 +17,8 @@
 
 package pro.foundev.examples.spark_streaming
 
-import _root_.java.text.SimpleDateFormat
-import _root_.java.util.Date
-
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SQLContext
-import org.apache.spark.sql.cassandra.CassandraSQLContext
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import pro.foundev.examples.spark_streaming.messaging.RabbitMqCapable
 import pro.foundev.examples.spark_streaming.utils.Args
@@ -38,16 +34,14 @@ class SqlOnWindows(master: String) extends RabbitMqCapable(master, "sql_on_windo
   override def createContext(): StreamingContext = {
     val (dstream, ssc, connector) = connectToExchange()
     val sqlContext = new SQLContext(ssc.sparkContext)
-    val format = new SimpleDateFormat("yyyy-MM-dd")
-
     import sqlContext.createSchemaRDD
 
-    val findWarnings = (e: RDD[(String, (String, String, BigDecimal, Date))])=>{
+    val findWarnings = (e: RDD[Transaction])=>{
       e.registerTempTable("transactions")
       sqlContext.sql("SELECT taxId, sum(amount) as sum_amount " +
         "FROM transactions " +
-        "where sum_amount > 9999.00 " +
-        "group by taxId")
+        "group by taxId " +
+        "having sum_amount > 4999.00").cache()
     }
     //every 10 seconds look at the past 60 seconds
     dstream.window(Seconds(60), Seconds(10)).map(line=> {
@@ -55,19 +49,14 @@ class SqlOnWindows(master: String) extends RabbitMqCapable(master, "sql_on_windo
       val taxId = columns(0)
       val name = columns(1)
       val merchant = columns(2)
-      val amount = BigDecimal(columns(3))
-      val transactionDate = format.parse(columns(4))
+      //NOTE: In prod you'd almost certainly want to use BigDecimal
+      val amount = columns(3).toDouble
+      val transactionDate = columns(4)
       println(line)
-      (taxId, (name, merchant, amount, transactionDate))
+      new Transaction(taxId, name, merchant, amount, transactionDate)
     })
-      .transform(x=>findWarnings(x))
-    .foreachRDD(warningsRdd=>{
-      warningsRdd.foreachPartition(warningIter=>{
-        while(warningIter.hasNext) {
-          println(warningIter.next())
-        }
-      })
-    })
+      .transform(x=>findWarnings(x))//use find warnings function on each transaction
+    .print()
     ssc
   }
 }

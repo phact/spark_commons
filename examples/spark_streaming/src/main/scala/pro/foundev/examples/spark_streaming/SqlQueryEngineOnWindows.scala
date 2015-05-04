@@ -71,7 +71,7 @@ class SqlQueryEngineOnWindows(master: String)
     /**
      * requires messages to be in the format of queryId:query
      * this assumes the query is on the transactions table
-     * for example: 1:SELECT count(*) as trans_count from transactions
+     * for example: 1:SELECT count(*) as trans_count from transactions_over_past_minute
      */
     val queries = queryStream.
       map(x=>x.split(":"))

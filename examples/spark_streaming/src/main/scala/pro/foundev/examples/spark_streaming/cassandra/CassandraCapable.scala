@@ -40,7 +40,9 @@ trait CassandraCapable {
       .set("spark.cassandra.connection.host", master)
       .setMaster("spark://"+ master+":7077")
       .setAppName("Windowed_Rapid_Transaction_Check")
-    )
+      .set("spark.eventLog.enabled", "true")
+      .set("spark.eventLog.dir", "cfs:///spark_logs/")
+      )
     if (withAuth){
       conf = conf.set("spark.cassandra.auth.username", username)
       .set("spark.cassandra.auth.password", password)
