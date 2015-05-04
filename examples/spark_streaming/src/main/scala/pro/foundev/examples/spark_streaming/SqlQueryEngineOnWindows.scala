@@ -51,6 +51,7 @@ class SqlQueryEngineOnWindows(master: String)
     val queryStream = ssc
       .receiverStream(new RabbitMQReceiver(StorageLevel.MEMORY_AND_DISK_2, master, "queries"))
 
+    val emptyRDD: RDD[Row] = ssc.sparkContext.emptyRDD
 
     /**
      * runs every 5 seconds look at the past 60 seconds.
@@ -70,26 +71,31 @@ class SqlQueryEngineOnWindows(master: String)
     /**
      * requires messages to be in the format of queryId:query
      * this assumes the query is on the transactions table
-     * for example: 1:SELECT count(*) as tran_count from transactions
-     * FIXME: need to add this back
+     * for example: 1:SELECT count(*) as trans_count from transactions
      */
-    val queries = queryStream.cache()
+    val queries = queryStream.
+      map(x=>x.split(":"))
+      .cache()
 
     /**
      * Combines both dstreams to a given single stream
      */
-    queries.transformWith(transactions, (queriesRDD: RDD[String], t: RDD[Transaction])=>{
+    queries.transformWith(transactions, (queriesRDD, t: RDD[Transaction])=>{
       import sqlContext.createSchemaRDD
-      t.registerTempTable("transactions")
+      t.registerTempTable("transactions_over_past_minute")
       val queries = queriesRDD.collect()
       if(queries.length>0){
-      val query = queries(0)
+        val queryMessage = queries(0)
+        val id = queryMessage(0)
+        val query = queryMessage(1)
+        println("query id: "+id)
+        println("query : " + query)
         sqlContext.sql(query).cache()
       }else{
-        sqlContext.sql("select * from transactions").cache()
+        println("no queries to answer")
+        emptyRDD
       }
-    }).cache()
-      .print()
+    }).print
 
     ssc
   }
