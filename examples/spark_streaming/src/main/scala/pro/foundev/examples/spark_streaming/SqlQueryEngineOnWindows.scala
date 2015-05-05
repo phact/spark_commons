@@ -62,11 +62,10 @@ class SqlQueryEngineOnWindows(master: String)
   override def createContext(): StreamingContext = {
     val (dstream, ssc, connector) = connectToExchange()
     val sqlContext = new SQLContext(ssc.sparkContext)
-    val queryStream = ssc
-      .receiverStream(new RabbitMQReceiver(StorageLevel.MEMORY_AND_DISK_2, master, "queries"))
-
     val emptyRDD: RDD[Row] = ssc.sparkContext.emptyRDD
 
+    val queryStream = ssc
+      .receiverStream(new RabbitMQReceiver(StorageLevel.MEMORY_AND_DISK_2, master, "queries"))
     /**
      * runs every 5 seconds look at the past 60 seconds.
      * the required message format is taxId, name, merchant name, dollar amount, transactionDate
