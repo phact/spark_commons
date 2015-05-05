@@ -27,6 +27,25 @@ import pro.foundev.examples.spark_streaming.utils.Args
 
 
 case class Transaction(taxId: String, name: String, merchant:String, amount: Double, transactionDate: String )
+
+/**
+ *
+ * Requirements
+ *  - CFS must be available
+ *  - DSE 4.7
+ *  - rabbitmq 3.4.4 is up.
+ *  - Runs on localhost and the external interface by default.
+ *  - Also must connect to the external.
+ *
+ * How to Run
+ *
+ *  - checkout source
+ *  - install sbt
+ *  - sbt assembly
+ *  - java -cp target/scala-2.10/dse_spark_streaming_examples-assembly-0.4.0.jar pro.foundev.examples.spark_streaming.java.messaging.RabbitMQEmitWarnings #connects to local host
+ *  - dse spark-submit --class pro.foundev.examples.spark_streaming.SqlQueryEngineOnWindows dse_spark_streaming_examples-assembly-0.4.0.jar |ip_address|
+ *  - rabbitmqadmin publish exchange=queries payload="1:SELECT COUNT(*) FROM transactions_over_past_minute" routing_key=null
+ */
 object SqlQueryEngineOnWindows {
   def main(args: Array[String])  = {
     val master = Args.parseMaster(args)
@@ -35,13 +54,8 @@ object SqlQueryEngineOnWindows {
 }
 
 /**
- * - This spark job requires CFS to be in place and will place a sql_query_engine_on_windows
- * checkpoint directory at the base level of CFS.
- * - RabbitMQ dependencies include an exchange named warnings and another named queries.
- * - I've chosen to also have output go to the console instead of to a message queue. There are
- * other examples in the code base demonstrating the output to queue technique such as
- * pro.foundev.examples.spark_streaming.java.interactive.smartconsumer.ResponseWriter
- * @param master
+ * Relies on CFS being present
+ * @param master node to connect to, this should probably be whatever rpc_address or rpc_broadcast is set to
  */
 class SqlQueryEngineOnWindows(master: String)
   extends RabbitMqCapable(master, "sql_query_engine_on_windows") {
@@ -85,6 +99,7 @@ class SqlQueryEngineOnWindows(master: String)
       t.registerTempTable("transactions_over_past_minute")
       val queries = queriesRDD.collect()
       if(queries.length>0){
+        // just get first one for example. Would iterate through this with foreachRDD
         val queryMessage = queries(0)
         val id = queryMessage(0)
         val query = queryMessage(1)

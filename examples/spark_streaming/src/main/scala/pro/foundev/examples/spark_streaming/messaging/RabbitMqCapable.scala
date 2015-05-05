@@ -36,6 +36,17 @@ abstract class RabbitMqCapable(master: String, checkPointDirectory: String) exte
     (dstream, context.streamingContext, context.connector)
   }
 
+  def connectToExchangeNamed(queueName: String): (DStream[String], StreamingContext, CassandraConnector) = {
+    //FIXME: hack hack hack
+    val context = connect(master)
+    val ssc = context.streamingContext
+    ssc.checkpoint(checkPointDirectory)
+    val customReceiverStream = ssc
+      .receiverStream(new RabbitMQReceiver(StorageLevel.MEMORY_AND_DISK_2, master,queueName))
+    val dstream: DStream[String] = customReceiverStream
+    (dstream, context.streamingContext, context.connector)
+  }
+
   def createContext():StreamingContext
 
   def startJob() = {
