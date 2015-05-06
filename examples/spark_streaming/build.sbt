@@ -7,7 +7,7 @@ version := "0.4.0"
 scalaVersion := "2.10.4"
 
 val Spark = "1.2.1"
-val SparkCassandra = "1.2.0-rc3"
+val SparkCassandra = "1.2.0"
 
 resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
 
