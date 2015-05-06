@@ -33,7 +33,6 @@ import pro.foundev.examples.spark_streaming.java.dto.Warning;
 import pro.foundev.examples.spark_streaming.java.messaging.AbstractRabbitMQConnector;
 import scala.Tuple2;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.*;
-import static com.datastax.spark.connector.japi.CassandraStreamingJavaUtil.*;
 
 
 
