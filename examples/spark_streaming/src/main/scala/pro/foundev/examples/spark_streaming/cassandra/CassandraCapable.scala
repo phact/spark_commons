@@ -17,13 +17,12 @@
 
 package pro.foundev.examples.spark_streaming.cassandra
 
-import com.datastax.bdp.spark.DseSparkConfHelper
+import com.datastax.bdp.spark.DseStreamingContext
 import com.datastax.spark.connector.cql.CassandraConnector
 import scala.collection.JavaConversions._
 import com.datastax.spark.connector.streaming._
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Milliseconds, StreamingContext}
-import DseSparkConfHelper._
 
 trait CassandraCapable {
 
@@ -33,13 +32,13 @@ trait CassandraCapable {
   val password = "cassandra"
   val username = "cassandra"
 
-  def connect(master: String): CassandraContext = {
+  def connect(master: String, appName: String): CassandraContext = {
 
     withAuth = true
     var conf = (new SparkConf()
       .set("spark.cassandra.connection.host", master)
       .setMaster("spark://"+ master+":7077")
-      .setAppName("Windowed_Rapid_Transaction_Check")
+      .setAppName(appName)
       .set("spark.eventLog.enabled", "true")
       .set("spark.eventLog.dir", "cfs:///spark_logs/")
       )
@@ -47,8 +46,6 @@ trait CassandraCapable {
       conf = conf.set("spark.cassandra.auth.username", username)
       .set("spark.cassandra.auth.password", password)
     }
-    conf = conf.forDse
-
     val connector = CassandraConnector(conf)
     connector.withSessionDo(session => {
       session.execute(s"create keyspace if not exists ${keySpaceName} with replication = { 'class':'SimpleStrategy', " +
@@ -63,7 +60,7 @@ trait CassandraCapable {
       session.execute(preparedStatement.bind(2: Integer, "mike", setAsJavaSet(Set("jsmith", "mike"))))
     })
 
-    val ssc = new StreamingContext(conf, Milliseconds(5000))
+    val ssc = DseStreamingContext(conf, Milliseconds(5000))
     new CassandraContext(connector, ssc.cassandraTable(keySpaceName, fullTableName), ssc)
   }
 }

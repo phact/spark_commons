@@ -16,7 +16,6 @@
 
 package pro.foundev;
 
-import com.datastax.bdp.spark.DseSparkConfHelper;
 import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.cql.CassandraConnector;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
@@ -32,8 +31,9 @@ import static com.datastax.spark.connector.japi.CassandraJavaUtil.*;
 public class App {
     public static void main(String[] args){
 
-        SparkConf conf = DseSparkConfHelper.enrichSparkConf(new SparkConf())
-                .setAppName( "My application");
+        SparkConf conf = new SparkConf()
+                .setAppName( "My application")
+                .forDse;
         JavaSparkContext sc = new JavaSparkContext(conf);
         CassandraConnector connector = CassandraConnector.apply(sc.getConf());
 

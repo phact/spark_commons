@@ -40,7 +40,7 @@ object SqlQueryEngine {
   }
 }
 
-class SqlQueryEngine(master: String) extends RabbitMqCapable(master, "sql_query_engine"){
+class SqlQueryEngine(master: String) extends RabbitMqCapable(master, "sql_query_engine", "SqlQueryEngine"){
   override def createContext(): StreamingContext = {
     val (dstream, ssc, connector) = connectToExchangeNamed("queries")
     val csc = new CassandraSQLContext(ssc.sparkContext)

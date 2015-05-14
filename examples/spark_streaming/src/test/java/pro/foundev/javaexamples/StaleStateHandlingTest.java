@@ -18,7 +18,7 @@
 
 package pro.foundev.javaexamples;
 
-import com.datastax.bdp.spark.DseSparkConfHelper;
+import com.datastax.bdp.spark.DseSparkContext;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -48,7 +48,7 @@ public class StaleStateHandlingTest implements Serializable{
     @Before
     public void setUp(){
 
-        SparkConf conf = DseSparkConfHelper.enrichSparkConf(new SparkConf())
+        SparkConf conf = DseSparkContext.apply(new SparkConf())
                 .setAppName("test_app")
                 .setMaster("local[2]");
                // .set("spark.streaming.clock", "org.apache.spark.util.ManualClock");

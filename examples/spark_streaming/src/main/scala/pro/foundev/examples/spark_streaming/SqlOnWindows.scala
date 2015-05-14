@@ -20,7 +20,10 @@ package pro.foundev.examples.spark_streaming
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-import pro.foundev.examples.spark_streaming.messaging.RabbitMqCapable
+import pro.foundev.commons.cassandra.CassandraCapable
+import pro.foundev.commons.messaging.RabbitMQCapable
+import pro.foundev.commons.streaming.StreamingCapable
+import pro.foundev.commons.SparkCapable
 import pro.foundev.examples.spark_streaming.utils.Args
 
 
@@ -30,9 +33,19 @@ object SqlOnWindows{
     new SqlOnWindows(master).startJob()
   }
 }
-class SqlOnWindows(master: String) extends RabbitMqCapable(master, "sql_on_windows_checkpoint") {
-  override def createContext(): StreamingContext = {
-    val (dstream, ssc, connector) = connectToExchange()
+class SqlOnWindows(master: String)
+  extends SparkCapable
+  with StreamingCapable
+  with CassandraCapable
+  with RabbitMQCapable{
+
+  def createContext(): StreamingContext = {
+    val conf = configureSpark(master, this.getClass().toString())
+    val checkpointDir = "sql_on_windows_checkpoint"
+    val ssc = createStreamingContext(master)
+    val connector = createCassandraConnection(false, conf, master)
+    val dstream = connectToExchange(master, ssc )
+
     val sqlContext = new SQLContext(ssc.sparkContext)
     import sqlContext.createSchemaRDD
 

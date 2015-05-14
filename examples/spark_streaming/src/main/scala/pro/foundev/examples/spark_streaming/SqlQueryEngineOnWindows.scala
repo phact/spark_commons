@@ -58,7 +58,7 @@ object SqlQueryEngineOnWindows {
  * @param master node to connect to, this should probably be whatever rpc_address or rpc_broadcast is set to
  */
 class SqlQueryEngineOnWindows(master: String)
-  extends RabbitMqCapable(master, "sql_query_engine_on_windows") {
+  extends RabbitMqCapable(master, "sql_query_engine_on_windows", "SqlQueryEngineOnWindows") {
   override def createContext(): StreamingContext = {
     val (dstream, ssc, connector) = connectToExchange()
     val sqlContext = new SQLContext(ssc.sparkContext)

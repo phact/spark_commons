@@ -16,7 +16,7 @@
  */
 package pro.foundev.strategies
 
-import com.datastax.bdp.spark.DseSparkConfHelper
+import com.datastax.bdp.spark.DseStreamingContext
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.rabbitmq.client.{ConnectionFactory, QueueingConsumer}
 import org.apache.log4j.{Level, Logger}
@@ -88,7 +88,7 @@ class SparkStreamingStrategy(master:String,
     Logger.getLogger("akka").setLevel(level)
     val host = master
 
-    val sparkConf = DseSparkConfHelper.enrichSparkConf(new SparkConf())
+    val sparkConf = new SparkConf()
       .set("driver.host", host)
       .setAppName("My application")
       .set("spark.cassandra.output.concurrent.writes","1")
@@ -97,7 +97,7 @@ class SparkStreamingStrategy(master:String,
       .set("spark.cassandra.input.page.row.size", "10")
       .setJars(Array("target/scala-2.10/interactive_spark_benchmarks-assembly-0.2.0.jar"))
       .setMaster(getMasterUrl())
-    val sc = new StreamingContext(sparkConf, Milliseconds(100))
+    val sc = DseStreamingContext(sparkConf, Milliseconds(100))
     val repo = new CassandraRepository
     val connector = CassandraConnector(sparkConf)
     receiver.setHost(master)

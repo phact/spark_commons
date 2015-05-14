@@ -16,7 +16,7 @@
  */
 package pro.foundev.strategies
 
-import com.datastax.bdp.spark.DseSparkConfHelper
+import com.datastax.bdp.spark.DseSparkContext
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.spark.{SparkConf, SparkContext}
 import pro.foundev.calculations.{CheapLogCalculator, LogCalculator}
@@ -32,8 +32,8 @@ class JobSubmissionStrategy(master: String,
 
   private def createContext: SparkContext = {
 
-    //DseSparkConfHelper is include with the dse-4.6.x.jar
-    val sparkConf = DseSparkConfHelper.enrichSparkConf(new SparkConf())
+    //DseSparkContext is include with the dse-4.7.x.jar
+     DseSparkContext(new SparkConf()
       .set("driver.host", master)
       .setAppName("My application")
       .set("spark.cassandra.output.concurrent.writes","1")
@@ -43,7 +43,7 @@ class JobSubmissionStrategy(master: String,
       //necessary to set jar for api submission
       .setJars(Array("target/scala-2.10/interactive_spark_benchmarks-assembly-0.2.0.jar"))
       .setMaster(getMasterUrl())
-    new SparkContext(sparkConf)
+      )
   }
 
   override protected def getStrategyName: String = { "API Job Submission Strategy" }

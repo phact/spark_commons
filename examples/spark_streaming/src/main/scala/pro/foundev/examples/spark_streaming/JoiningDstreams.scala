@@ -24,13 +24,17 @@ import org.apache.spark.streaming.StreamingContext._
 import pro.foundev.examples.spark_streaming.sockets.TextSocketCapable
 import pro.foundev.examples.spark_streaming.utils.Args
 
-object JoiningDstreams extends TextSocketCapable{
-
+object JoiningDstreams {
   def main(args: Array[String]): Unit ={
     val hostName = Args.parseMaster(args)
+    new JoiningDstreams(hostName).startJob()
+  }
+}
+class JoiningDstreams(hostName: String) extends TextSocketCapable{
+  def startJob(): Unit = {
     val logManager = LogManager.getLogManager()
     val logger = logManager.getLogger("joining")
-    val (socketRdd, sparkContext, connector) = connectToSocket(hostName)
+    val (socketRdd, sparkContext, connector) = connectToSocket(hostName, this.getClass().toString())
 
     val tweetsAuthors = socketRdd.map(tweet => {
       val columns = tweet.split(",")

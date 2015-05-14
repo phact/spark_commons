@@ -30,7 +30,7 @@ object CounterReplacementOnIngest extends CassandraCapable{
   def main(args: Array[String]): Unit = {
     val host = Args.parseMaster(args)
     this.withAuth = true
-    val context = connect(host)
+    val context = connect(host, this.getClass.toString)
     val topicMap = Map("logs" -> 1)
     val connector = context.connector
     val logs = "logs"

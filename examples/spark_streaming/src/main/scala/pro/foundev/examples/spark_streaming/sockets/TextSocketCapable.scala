@@ -25,8 +25,8 @@ import pro.foundev.examples.spark_streaming.cassandra.CassandraCapable
 trait TextSocketCapable extends CassandraCapable {
 
   val port = 10034
-  def connectToSocket(hostName: String): (DStream[String], StreamingContext, CassandraConnector) = {
-    val context = connect(hostName)
+  def connectToSocket(hostName: String, appName: String): (DStream[String], StreamingContext, CassandraConnector) = {
+    val context = connect(hostName, appName)
     val rdd: DStream[String] = context.streamingContext.socketTextStream(hostName,port)
     (rdd, context.streamingContext, context.connector)
   }

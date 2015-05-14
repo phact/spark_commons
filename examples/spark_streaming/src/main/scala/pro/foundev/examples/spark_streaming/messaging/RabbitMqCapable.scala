@@ -24,10 +24,10 @@ import org.apache.spark.streaming.dstream.DStream
 import pro.foundev.examples.spark_streaming.cassandra.CassandraCapable
 import pro.foundev.examples.spark_streaming.java.messaging.RabbitMQReceiver
 
-abstract class RabbitMqCapable(master: String, checkPointDirectory: String) extends CassandraCapable{
+abstract class RabbitMqCapable(master: String, checkPointDirectory: String, appName: String) extends CassandraCapable{
 
   def connectToExchange(): (DStream[String], StreamingContext, CassandraConnector) = {
-    val context = connect(master)
+    val context = connect(master, appName)
     val ssc = context.streamingContext
     ssc.checkpoint(checkPointDirectory)
     val customReceiverStream = ssc
@@ -38,7 +38,7 @@ abstract class RabbitMqCapable(master: String, checkPointDirectory: String) exte
 
   def connectToExchangeNamed(queueName: String): (DStream[String], StreamingContext, CassandraConnector) = {
     //FIXME: hack hack hack
-    val context = connect(master)
+    val context = connect(master, appName)
     val ssc = context.streamingContext
     ssc.checkpoint(checkPointDirectory)
     val customReceiverStream = ssc

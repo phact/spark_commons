@@ -34,7 +34,7 @@ object WindowedCalculationsAndEventTriggering {
   }
 }
 class WindowedCalculationsAndEventTriggering(master: String )
-    extends RabbitMqCapable(master, "windowed_checkpoint") {
+    extends RabbitMqCapable(master, "windowed_checkpoint", "WindowedCalculationsAndEventTriggering") {
 
   def createContext(): StreamingContext = {
     val (rdd, sparkContext, connector) = connectToExchange()
