@@ -8,7 +8,6 @@ lazy val commonSettings = Seq(
   resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
 )
 
-
 lazy val commons = (project in file("commons")).
   settings(commonSettings: _*)
 
@@ -35,11 +34,6 @@ lazy val iot_reference_example = (project in file("examples/iot_reference"))
 lazy val jdbc_example = (project in file("examples/jdbc_example"))
     .dependsOn(commons)
    .settings(commonSettings: _*)
-
-/*lazy val maven_example = (project in file("examples/maven_example"))
-    .dependsOn(commons)
-   .settings(commonSettings: _*)
-   */
 
 lazy val spark_bulk_operations_example = (project in file("examples/spark_bulk_operations"))
     .dependsOn(commons)
