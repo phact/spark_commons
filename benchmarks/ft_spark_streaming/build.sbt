@@ -2,8 +2,6 @@ import AssemblyKeys._
 
 name := "ft_spark_streaming"
 
-version := "0.1.0"
-
 //We do this so that Spark Dependencies will not be bundled with our fat jar but will still be included on the classpath
 //When we do a sbt/run
 run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run))

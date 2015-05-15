@@ -2,8 +2,6 @@ import AssemblyKeys._
 
 name := "dse_spark_streaming_examples"
 
-version := "0.4.0"
-
 libraryDependencies ++= Seq(
   "com.rabbitmq" % "amqp-client" % "3.4.4",
   "net.jpountz.lz4" % "lz4" % "1.2.0",

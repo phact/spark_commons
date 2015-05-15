@@ -2,8 +2,6 @@ import AssemblyKeys._
 
 name := "interactive_spark_benchmarks"
 
-version := "0.2.0"
-
 libraryDependencies ++= Seq(
   "com.rabbitmq" % "amqp-client" % "3.4.4",
   "org.apache.commons" % "commons-math3" % "3.4.1",

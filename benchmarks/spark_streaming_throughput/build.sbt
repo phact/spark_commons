@@ -2,8 +2,6 @@ import AssemblyKeys._
 
 name := "spark_streaming_throughput"
 
-version := "0.1.0"
-
 libraryDependencies ++= Seq(
   "com.rabbitmq" % "amqp-client" % "3.4.4",
   "org.apache.commons" % "commons-math3" % "3.4.1",

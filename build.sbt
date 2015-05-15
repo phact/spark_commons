@@ -3,6 +3,7 @@ import Dependencies._
 lazy val commonSettings = Seq(
   organization := "pro.foundev",
   scalaVersion := "2.10.5",
+  version := "0.9.0",
   libraryDependencies ++= sparkDependencies,
   libraryDependencies ++= testDependencies,
   resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
