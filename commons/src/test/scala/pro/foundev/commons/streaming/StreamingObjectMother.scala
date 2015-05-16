@@ -19,17 +19,18 @@ package pro.foundev.commons.streaming
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Duration, StreamingContext}
 
-class StreamingObjectMother {
+object StreamingObjectMother {
   /**
    * TODO: make single global streaming run for all testing. will need to play with cleanup
    * @return
    */
-  def createStream():StreamingContext = {
+  def createStream(slideDuration: Int):StreamingContext = {
     val sparkConf = new SparkConf()
       .setAppName("streaming_tester")
     .setMaster("local[*]")
-      //.setMaster("spark:///localhost:7077")
+    .set("spark.streaming.clock", "org.apache.spark.streaming.util.ManualClock")
+    //.setMaster("spark:///localhost:7077")
      // .set("spark.cassandra.connection.host", "127.0.0.1")
-    new StreamingContext(sparkConf, Duration(500))
+    new StreamingContext(sparkConf, Duration(slideDuration))
   }
 }

@@ -16,15 +16,16 @@
 
 package pro.foundev.commons
 
+import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream
 
-import scala.collection.mutable.ListBuffer
+object RDDCounter {
+  type RDDHandler = (RDD[String]) => Unit
 
-object RddAsserts extends Serializable{
-
-  def assertCountIs(items: DStream[String], count: Int)={
-    val results = ListBuffer.empty[Array[String]]
-    items.foreachRDD(rdd=>results+=rdd.collect())
-    assert(results==count)
+  def count(lines: DStream[String])
+           (handler: RDDHandler): Unit ={
+    lines.foreachRDD(rdd=>{
+      handler(rdd)
+    })
   }
 }

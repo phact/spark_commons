@@ -20,15 +20,17 @@
 
 package pro.foundev.commons.messaging
 
+import akka.util.ByteString
+import akka.zeromq.Subscribe
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.zeromq._
-import akka.zeromq._
-import akka.zeromq.Subscribe
-import akka.util.ByteString
 
 trait ZeroMQCapable {
-  def bytesToStringIterator(x: Seq[ByteString]): Iterator[String] = x.map(_.utf8String).iterator
+  def bytesToStringIterator(x: Seq[ByteString]): Iterator[String] = {
+    println(x)
+    x.map(_.utf8String).iterator
+  }
 
   def createQueueDStream(ssc: StreamingContext, url: String, topic: String ):DStream[String]={
     ZeroMQUtils.createStream(ssc, url, Subscribe(topic), bytesToStringIterator _)

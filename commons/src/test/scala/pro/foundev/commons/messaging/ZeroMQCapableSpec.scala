@@ -18,50 +18,65 @@
 
 package pro.foundev.commons.messaging
 
-import akka.actor.ActorSystem
 import akka.util.ByteString
-import akka.zeromq.{Bind, SocketType, ZMQMessage, ZeroMQExtension}
-import org.scalatest.FunSpec
-import pro.foundev.commons.RddAsserts
-import pro.foundev.commons.streaming.StreamingObjectMother
+import org.scalatest.concurrent.Eventually
+import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
+import pro.foundev.commons.{RDDCounter, SparkStreamingSpec, ZeroMQTestPublisher}
 
-class ZeroMQPublishTester (url: String, topicName: String) extends Serializable{
-  lazy val actorSystem = ActorSystem()
-  lazy val socket = ZeroMQExtension(actorSystem).newSocket(SocketType.Pub, Bind(url))
+import scala.collection.mutable
 
-  def publish(message: List[ByteString])={
-    socket ! ZMQMessage(ByteString(topicName) :: message)
-  }
+/**
+ * have to use serializable class or will get hit by all sorts of pain
+ * - AssertionHelper decorates if you use an anonymous class
+ * -
+ * needs zeromq 2.2. On mac: brew install homebrew/versions/zeromq22
+ */
+class ZeroMQCapableImpl extends ZeroMQCapable with Serializable{
 
-  def cleanUp(): Unit ={
-    actorSystem.stop(socket)
-  }
 }
-class ZeroMQCapableSpec extends FunSpec {
-  describe("ZeroMQCapable"){
-    it("will read published lines") {
-      implicit def stringToByteString(x: String): ByteString = ByteString(x)
-      val topicName = "fake-topic"
-      val url = "tcp://127.0.0.1:10049"
-      val publisher = new ZeroMQPublishTester(url, topicName)
-      val zeroMQCapable = new ZeroMQCapable() {
-      }
-      val ssc = new StreamingObjectMother().createStream()
-      val lines = zeroMQCapable.createQueueDStream(ssc, url, topicName)
-      ssc.start()
-      publisher.publish(List("A", "B", "C"))
-      publisher.publish(List("A", "B", "C"))
-      publisher.publish(List("A", "B", "C"))
-      publisher.publish(List("A", "B", "C"))
-      try {
-        Thread.sleep(1000)
-        RddAsserts.assertCountIs(lines, 5)
-        //assert(results.length == 5)
-      }finally {
-        ssc.stop()
-        publisher.cleanUp()
+class ZeroMQCapableSpec extends FlatSpec with SparkStreamingSpec with GivenWhenThen with Matchers with Eventually{
+  // default timeout for eventually trait
+//  implicit override val patienceConfig =
+ //   PatienceConfig(timeout = scaled(Span(1500, Millis)))
+
+  "ZeroMQCapable" should "read lines" in {
+    System.clearProperty("spark.master.port")
+    Given("streaming context is initialized")
+    val topicName = "fake-topic"
+    val url = "tcp://127.0.0.1:10049"
+    val publisher = new ZeroMQTestPublisher(url, topicName )
+    val zeroMQCapable = new ZeroMQCapableImpl()
+    var results= mutable.ArrayBuffer.empty[Array[String]]
+    val lines = zeroMQCapable.createQueueDStream(ssc, url, topicName)
+    //Have to use RDDCounter otherwise serialization on the closure kicks in .
+    // TODO verify further and understand why it is guarded inside the { }
+    RDDCounter.count(lines){
+      (rdd)=>results += rdd.collect()
+    }
+    publisher.publish(List(ByteString("FIXME need this to make anything else work..no idea why")))
+    ssc.start()
+    Thread.sleep(300) //FIXME this is probably related to issues with the above bogus publish
+    publisher.publish(List(ByteString("A")))
+    publisher.publish(List(ByteString("D")))
+    publisher.publish(List(ByteString("G")))
+    publisher.publish(List(ByteString("H")))
+    publisher.publish(List(ByteString("K")))
+    Thread.sleep(300) //FIXME figure out why I need this long for item to register
+    Thread.sleep(100)
+
+
+    When("publishing 5 messages")
+    try {
+      When("after first slide")
+      clock.advance(batchDuration.milliseconds)
+      Then("5 should be read back")
+      eventually {
+        results.last.length should equal(5)
       }
 
+    }finally{
+      publisher.cleanUp()
+      //System.clearProperty("spark.master.port")
     }
   }
 }

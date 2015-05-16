@@ -20,7 +20,7 @@ val sparkDependencies = Seq(spark_core,
   spark_connector,
   spark_connector_java)
 val testDependencies = Seq(
-  "org.scalatest" % "scalatest_2.10" % "2.2.1" % "test",
+  "org.scalatest" % "scalatest_2.10" % "2.2.4" % "test",
   "org.mockito" % "mockito-all" % "1.10.19" % "test",
   "com.github.javafaker" % "javafaker" % "0.5")
 
@@ -30,7 +30,9 @@ lazy val commonSettings = Seq(
   version := "0.9.0",
   libraryDependencies ++= sparkDependencies,
   libraryDependencies ++= testDependencies,
-  resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
+  resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
+  parallelExecution in Test := false,
+  fork in Test := true
 )
 
 lazy val commons = (project in file("commons")).
