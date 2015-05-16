@@ -42,7 +42,7 @@ object SparkSqlQuery extends CassandraCapable {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf(true)
       .set("spark.cassandra.connection.host", "127.0.0.1")
-      .setJars(Array("target/scala-2.10/spark_bulk_ops-assembly-0.2.0.jar"))
+      .setJars(Array("target/scala-2.10/spark_bulk_ops-assembly.jar"))
     val sc = new SparkContext("spark://127.0.0.1:7077", "test", conf)
     val connector = CassandraConnector(conf)
 

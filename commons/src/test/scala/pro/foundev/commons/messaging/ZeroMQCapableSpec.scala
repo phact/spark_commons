@@ -18,10 +18,50 @@
 
 package pro.foundev.commons.messaging
 
+import akka.actor.ActorSystem
+import akka.util.ByteString
+import akka.zeromq.{Bind, SocketType, ZMQMessage, ZeroMQExtension}
 import org.scalatest.FunSpec
+import pro.foundev.commons.RddAsserts
+import pro.foundev.commons.streaming.StreamingObjectMother
 
-class ZeroMQCapableSpec extends FunSpec{
-  describe("able to connect to zeroMQ")={
+class ZeroMQPublishTester (url: String, topicName: String) extends Serializable{
+  lazy val actorSystem = ActorSystem()
+  lazy val socket = ZeroMQExtension(actorSystem).newSocket(SocketType.Pub, Bind(url))
 
+  def publish(message: List[ByteString])={
+    socket ! ZMQMessage(ByteString(topicName) :: message)
+  }
+
+  def cleanUp(): Unit ={
+    actorSystem.stop(socket)
+  }
+}
+class ZeroMQCapableSpec extends FunSpec {
+  describe("ZeroMQCapable"){
+    it("will read published lines") {
+      implicit def stringToByteString(x: String): ByteString = ByteString(x)
+      val topicName = "fake-topic"
+      val url = "tcp://127.0.0.1:10049"
+      val publisher = new ZeroMQPublishTester(url, topicName)
+      val zeroMQCapable = new ZeroMQCapable() {
+      }
+      val ssc = new StreamingObjectMother().createStream()
+      val lines = zeroMQCapable.createQueueDStream(ssc, url, topicName)
+      ssc.start()
+      publisher.publish(List("A", "B", "C"))
+      publisher.publish(List("A", "B", "C"))
+      publisher.publish(List("A", "B", "C"))
+      publisher.publish(List("A", "B", "C"))
+      try {
+        Thread.sleep(1000)
+        RddAsserts.assertCountIs(lines, 5)
+        //assert(results.length == 5)
+      }finally {
+        ssc.stop()
+        publisher.cleanUp()
+      }
+
+    }
   }
 }

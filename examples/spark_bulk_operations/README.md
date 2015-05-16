@@ -17,10 +17,10 @@ Put this together to show a demonstration of what Spark can do when combined wit
 On one of the nodes in the cluster do the following
  
 1. copy the example.txt file in src/main/resources/example.txt to the cluster
-2. copy target/scala-2.10/spark_bulk_ops-assembly-0.2.0.jar to the cluster ( you may have to run sbt assembly first)s
+2. copy target/scala-2.10/spark_bulk_ops-assembly.jar to the cluster ( you may have to run sbt assembly first)s
 3. sudo dse hadoop fs -put example.txt src/main/resources/example.txt 
-4. sudo dse spark-submit --class BulkLoad spark_bulk_ops-assembly-0.2.0.jar
-5. sudo dse spark-submit --class FindWithArgs spark_bulk_ops-assembly-0.2.0.jar 1
+4. sudo dse spark-submit --class BulkLoad spark_bulk_ops-assembly.jar
+5. sudo dse spark-submit --class FindWithArgs spark_bulk_ops-assembly.jar 1
 
 
 This should create and load a table on cassandra called spark_bulk_ops.kv load it with data, and then read all that 

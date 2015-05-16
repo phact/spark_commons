@@ -95,7 +95,7 @@ class SparkStreamingStrategy(master:String,
       .set("spark.cassandra.output.batch.size.rows", "1")
       .set("spark.cassandra.input.split.size", "10000")
       .set("spark.cassandra.input.page.row.size", "10")
-      .setJars(Array("target/scala-2.10/interactive_spark_benchmarks-assembly-0.2.0.jar"))
+      .setJars(Array("target/scala-2.10/interactive_spark_benchmarks-assembly.jar"))
       .setMaster(getMasterUrl())
     val sc = DseStreamingContext(sparkConf, Milliseconds(100))
     val repo = new CassandraRepository

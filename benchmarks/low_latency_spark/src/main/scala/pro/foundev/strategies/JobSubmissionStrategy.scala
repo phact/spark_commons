@@ -31,7 +31,6 @@ class JobSubmissionStrategy(master: String,
 
 
   private def createContext: SparkContext = {
-
     //DseSparkContext is include with the dse-4.7.x.jar
      DseSparkContext(new SparkConf()
       .set("driver.host", master)
@@ -41,7 +40,7 @@ class JobSubmissionStrategy(master: String,
       .set("spark.cassandra.input.split.size", "10000")
       .set("spark.cassandra.input.page.row.size", "10")
       //necessary to set jar for api submission
-      .setJars(Array("target/scala-2.10/interactive_spark_benchmarks-assembly-0.2.0.jar"))
+      .setJars(Array("target/scala-2.10/interactive_spark_benchmarks-assembly.jar"))
       .setMaster(getMasterUrl())
       )
   }

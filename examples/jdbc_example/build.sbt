@@ -16,6 +16,8 @@ traceLevel in run := 0
 
 fork in run := true
 
+jarName in assembly := name.value + "-assembly.jar"
+
 mergeStrategy in assembly := {
   case PathList("META-INF", "ECLIPSEF.RSA", xs @ _*)         => MergeStrategy.discard
   case PathList("META-INF", "mailcap", xs @ _*)         => MergeStrategy.discard

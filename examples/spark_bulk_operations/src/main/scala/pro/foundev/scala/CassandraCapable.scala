@@ -58,7 +58,6 @@ trait CassandraCapable {
   def connectToCassandra(): CassandraContext = {
     val conf = new SparkConf(true)
       .set("spark.cassandra.connection.host", "127.0.0.1")
-    // .setJars(Array("target/scala-2.10/spark_bulk_ops-assembly-0.2.0.jar"))
     val sc = new SparkContext("spark://127.0.0.1:7077", "test", conf)
     val connector = CassandraConnector(conf)
     connector.withSessionDo(session => {

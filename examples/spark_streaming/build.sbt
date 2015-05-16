@@ -19,6 +19,8 @@ assemblySettings
 
 test in assembly := {}
 
+jarName in assembly := name.value + "-assembly.jar"
+
 mergeStrategy in assembly := {
   case PathList("META-INF", "ECLIPSEF.RSA", xs @ _*)         => MergeStrategy.discard
   case PathList("META-INF", "mailcap", xs @ _*)         => MergeStrategy.discard

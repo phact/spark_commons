@@ -42,8 +42,8 @@ case class Transaction(taxId: String, name: String, merchant:String, amount: Dou
  *  - checkout source
  *  - install sbt
  *  - sbt assembly
- *  - java -cp target/scala-2.10/dse_spark_streaming_examples-assembly-0.4.0.jar pro.foundev.examples.spark_streaming.java.messaging.RabbitMQEmitWarnings #connects to local host
- *  - dse spark-submit --class pro.foundev.examples.spark_streaming.SqlQueryEngineOnWindows dse_spark_streaming_examples-assembly-0.4.0.jar |ip_address|
+ *  - java -cp target/scala-2.10/dse_spark_streaming_examples-assembly.jar pro.foundev.examples.spark_streaming.java.messaging.RabbitMQEmitWarnings #connects to local host
+ *  - dse spark-submit --class pro.foundev.examples.spark_streaming.SqlQueryEngineOnWindows dse_spark_streaming_examples-assembly.jar |ip_address|
  *  - rabbitmqadmin publish exchange=queries payload="1:SELECT COUNT(*) FROM transactions_over_past_minute" routing_key=null
  */
 object SqlQueryEngineOnWindows {
