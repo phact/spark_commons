@@ -16,7 +16,7 @@
  */
 package pro.foundev.cassandra
 
-import com.datastax.driver.core.SimpleStatement
+import com.datastax.driver.core.{Row, SimpleStatement}
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.spark.SparkContext
@@ -27,6 +27,21 @@ import pro.foundev.dto.IpLog
 import scala.collection.JavaConverters._
 
 class CassandraRepository  extends Serializable{
+  private def mapLog(result:Row): IpLog = {
+    val id = result.getLong("id")
+    val originState = result.getString("origin_state")
+    val ipAddress = result.getInet("ip_address")
+    val urls = result.getList[String]("urls", classOf[String])
+    new IpLog(id, originState, ipAddress, urls.asScala.toList)
+  }
+
+  private def mapLogFromResult(result: CassandraRow): IpLog ={
+    val id = result.getLong("id")
+    val originState = result.getString("origin_state")
+    val ipAddress = result.getInet("ip_address")
+    val urls = result.getList[String]("urls")
+    new IpLog(id, originState, ipAddress, urls.toList)
+  }
 
   def getLogsForIds(ids: Set[Long], connector: CassandraConnector): List[IpLog] = {
     //without primary key pushdown in 1.1 use of cassandra connector is necessary
@@ -34,18 +49,12 @@ class CassandraRepository  extends Serializable{
     connector.withSessionDo { session => {
       val result = ids.map(i => {
         val statement = new SimpleStatement("SELECT * FROM %s.%s WHERE id = %d".format(getKeyspace, getTable, i))
-        val results = session.execute(statement)
-        val result = results.one()
-
-        val id = result.getLong("id")
-        val originState = result.getString("origin_state")
-        val ipAddress = result.getInet("ip_address")
-        val urls = result.getList[String]("urls", classOf[String])
-        new IpLog(id, originState, ipAddress, urls.asScala.toList)
-      })
+        session.executeAsync(statement)
+      }).map(future => future.getUninterruptibly().one())
+        .filter(r => r != null)
+        .map(result => mapLog(result))
       logs = result.toList
-    }
-    }
+    }}
     logs
   }
 
@@ -56,30 +65,17 @@ class CassandraRepository  extends Serializable{
       val statement = new SimpleStatement("SELECT * FROM %s.%s WHERE id = %d".format(getKeyspace, getTable,logId))
       val results = session.execute(statement)
       val result = results.one()
-
-      val id = result.getLong("id")
-      val originState = result.getString("origin_state")
-      val ipAddress = result.getInet("ip_address")
-      val urls = result.getList[String]("urls", classOf[String])
-      log = new IpLog(id, originState, ipAddress, urls.asScala.toList)
+      log = mapLog(result)
       }
     }
     log
   }
 
   def getLogsFromRandom2i(state: String, sparkContext: SparkContext): RDD[IpLog] = {
-    //may have to recode for spark streaming..don't know yet
-    //TODO: figured this out..change depending in method to cassandraTable
-    val rdd = sparkContext.cassandraTable(getKeyspace, getTable).where("origin_state = ?", state).map(result=>{
-      val id = result.getLong("id")
-      val originState = result.getString("origin_state")
-      val ipAddress = result.getInet("ip_address")
-      val urls = result.get[List[String]]("urls")
-      new IpLog(id, originState, ipAddress, urls)
-    })
-    rdd
+    sparkContext.cassandraTable(getKeyspace, getTable)
+    .where("origin_state = ?", state)
+      .map(result => mapLogFromResult(result))
   }
-
 
   def getLogsFromRandom2iUsingConnector(state: String, connector: CassandraConnector):List[IpLog] = {
     //without primary key pushdown in 1.1 use of cassandra connector is necessary
@@ -87,15 +83,8 @@ class CassandraRepository  extends Serializable{
     connector.withSessionDo { session => {
       val statement = new SimpleStatement("SELECT * FROM %s.%s WHERE origin_state = '%s'".format(getKeyspace, getTable, state))
       val results = session.execute(statement).all().asScala.toList
-      logs = results.map(row => {
-        val id = row.getLong("id")
-        val originState = row.getString("origin_state")
-        val ipAddress = row.getInet("ip_address")
-        val urls = row.getList[String]("urls", classOf[String])
-        new IpLog(id, originState, ipAddress, urls.asScala.toList)
-      })
-    }
-    }
+      logs = results.map(row => mapLog(row))
+    }}
     logs
   }
 

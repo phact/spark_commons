@@ -32,6 +32,7 @@ trait SparkSpec extends BeforeAndAfterAll {
   val conf: SparkConf = new SparkConf()
     .setMaster(master)
     .setAppName(appName)
+    .set("spark.cassandra.connection.host", "localhost")
 
   override def beforeAll(): Unit = {
     super.beforeAll()
