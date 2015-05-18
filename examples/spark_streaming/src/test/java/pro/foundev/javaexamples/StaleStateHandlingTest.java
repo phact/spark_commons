@@ -20,8 +20,10 @@ package pro.foundev.javaexamples;
 
 import com.datastax.bdp.spark.DseSparkContext;
 import org.apache.spark.SparkConf;
+import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
@@ -48,12 +50,13 @@ public class StaleStateHandlingTest implements Serializable{
     @Before
     public void setUp(){
 
-        SparkConf conf = DseSparkContext.apply(new SparkConf())
+        SparkConf conf =new SparkConf()
                 .setAppName("test_app")
                 .setMaster("local[2]");
                // .set("spark.streaming.clock", "org.apache.spark.util.ManualClock");
-
-        ssc = new JavaStreamingContext(conf, new Duration(1000));
+        SparkContext sparkContext = DseSparkContext.apply(conf);
+        JavaSparkContext javaSparkContext = new JavaSparkContext(sparkContext);
+        ssc = new JavaStreamingContext(javaSparkContext, new Duration(1000));
         ssc.checkpoint("checkpoint");
     }
 
