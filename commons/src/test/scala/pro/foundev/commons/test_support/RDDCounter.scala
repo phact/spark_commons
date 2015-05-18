@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package pro.foundev.commons
+package pro.foundev.commons.test_support
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream

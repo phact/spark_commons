@@ -52,8 +52,8 @@ public class StaleStateHandlingTest implements Serializable{
 
         SparkConf conf =new SparkConf()
                 .setAppName("test_app")
-                .setMaster("local[2]");
-               // .set("spark.streaming.clock", "org.apache.spark.util.ManualClock");
+                .setMaster("local[*]")
+                .set("spark.streaming.clock", "org.apache.spark.util.ManualClock");
         SparkContext sparkContext = DseSparkContext.apply(conf);
         JavaSparkContext javaSparkContext = new JavaSparkContext(sparkContext);
         ssc = new JavaStreamingContext(javaSparkContext, new Duration(1000));

@@ -19,21 +19,28 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext._
 import pro.foundev.dto.{IpLog, SessionReport}
 
+/**
+ *
+ */
 class LogCalculatorImpl extends LogCalculator{
 
+  /**
+   * returns state with most clicks and the average clicks per user
+   * @param table
+   * @return
+   */
   override def sessionReport(table: RDD[IpLog]):SessionReport  = {
-    table.cache()
     val biggestState: String = table.
-      map(log=>(log.originState, log.urls.size))
+      map(log => (log.originState, log.urls.size))
       .reduceByKey((t1, t2) => t1 + t2)
       .reduce((t1, t2) => {
-      if(t1._2>t2._2){
+      if (t1._2 > t2._2) {
         t1
-      }else{
+      } else {
         t2
       }
     })._1
-    val averageClicksBySession: Double = table.map(log=>log.urls.size).mean()
-    new SessionReport(biggestState,averageClicksBySession)
+    val averageClicksBySession: Double = table.map(log => log.urls.size).mean()
+    new SessionReport(biggestState, averageClicksBySession)
   }
 }

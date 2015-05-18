@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package pro.foundev.commons
+package pro.foundev.commons.test_support
 
 import akka.actor.ActorSystem
 import akka.util.ByteString
-import akka.zeromq.{ZeroMQExtension, ZMQMessage, Bind, SocketType}
+import akka.zeromq.{Bind, SocketType, ZMQMessage, ZeroMQExtension}
 
 class ZeroMQTestPublisher (url: String, topicName: String) extends Serializable{
   lazy val actorSystem = ActorSystem()

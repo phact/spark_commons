@@ -17,9 +17,12 @@
 package pro.foundev.calculations
 
 import org.apache.spark.rdd.RDD
-import pro.foundev.dto.{IpLog, SessionReport}
+import pro.foundev.dto.{SessionReport, IpLog}
 
-abstract class LogCalculator extends Serializable{
+/**
+ * interface for Log Calculation
+ */
+trait LogCalculator extends Serializable{
 
   def sessionReport(table: RDD[IpLog]):SessionReport
 }

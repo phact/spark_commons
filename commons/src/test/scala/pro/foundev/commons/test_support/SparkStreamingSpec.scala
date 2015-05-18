@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package pro.foundev.commons
+package pro.foundev.commons.test_support
 
 import java.nio.file.Files
 
-import org.apache.spark.streaming.{Seconds, StreamingContext, ClockWrapper}
+import org.apache.spark.streaming.{ClockWrapper, Seconds, StreamingContext}
 import org.scalatest.Suite
 
+/**
+ * base class that manages lifecycle for streaming jobs.
+ * Batches are based on a second and a manual clock is used. Accessing the clock variable allows you to advance time
+ * as far as the microbatch process is concerned. Taken from http://mkuthan.github.io/blog/2015/03/01/spark-unit-testing/
+ * Temporary directory is created for checkpoint dir
+ */
 trait SparkStreamingSpec extends SparkSpec {
   this: Suite =>
 

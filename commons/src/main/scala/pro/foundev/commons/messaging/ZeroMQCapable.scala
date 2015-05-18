@@ -26,13 +26,25 @@ import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.zeromq._
 
+/**
+ * Easy DStream creation for ZeroMQ. Already handles conversion of ByteString back to String
+ */
 trait ZeroMQCapable {
   def bytesToStringIterator(x: Seq[ByteString]): Iterator[String] = {
     println(x)
     x.map(_.utf8String).iterator
   }
 
-  def createQueueDStream(ssc: StreamingContext, url: String, topic: String ):DStream[String]={
-    ZeroMQUtils.createStream(ssc, url, Subscribe(topic), bytesToStringIterator _)
+  /**
+   * Convenience wrapper for ZeroMQUtils
+   * @param ssc
+   * @param url zeromq url such as tcp://127.0.0.1:1234
+   * @param subscriberTopic should match what the publisher is sending minus anything after a period. example
+   *              - pub: foo.bar sub: foo - valid
+   *              - pub: foo sub: foo - valid
+   * @return Assumes DStream of strings. TODO: generics
+   */
+  def createQueueDStream(ssc: StreamingContext, url: String, subscriberTopic: String ):DStream[String]={
+    ZeroMQUtils.createStream(ssc, url, Subscribe(subscriberTopic), bytesToStringIterator _)
   }
 }

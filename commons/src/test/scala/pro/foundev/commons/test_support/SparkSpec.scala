@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package pro.foundev.commons
+package pro.foundev.commons.test_support
+
 import org.apache.spark._
 import org.scalatest._
 

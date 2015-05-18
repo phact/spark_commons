@@ -21,7 +21,7 @@ package pro.foundev.commons.messaging
 import akka.util.ByteString
 import org.scalatest.concurrent.Eventually
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
-import pro.foundev.commons.{RDDCounter, SparkStreamingSpec, ZeroMQTestPublisher}
+import pro.foundev.commons.test_support.{ZeroMQTestPublisher, RDDCounter, SparkStreamingSpec}
 
 import scala.collection.mutable
 

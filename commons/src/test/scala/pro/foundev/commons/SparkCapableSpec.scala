@@ -18,6 +18,8 @@
 
 package pro.foundev.commons
 
-class SparkCapableSpec {
+import org.scalatest.FunSpec
+
+class SparkCapableSpec extends FunSpec  {
 
 }
