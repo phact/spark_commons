@@ -18,7 +18,7 @@ package pro.foundev.strategies
 
 import com.datastax.driver.core.Cluster
 import org.apache.spark.storage.StorageLevel
-import org.scalatest.FunSpec
+import org.scalatest._
 import org.scalatest.mock.MockitoSugar
 import pro.foundev.Configuration
 import pro.foundev.calculations.LogCalculatorImpl
@@ -30,6 +30,7 @@ import scala.collection.mutable
 
 class MockPublisher extends LogPublisher{
   var list: mutable.MutableList[String] = new mutable.MutableList[String]()
+
 
   override def publish(message: String): Unit = {
     list.+=(message)
@@ -48,6 +49,14 @@ class MockReceiver() extends AbstractQueueReceiver(StorageLevel.MEMORY_ONLY) {
   override def setQueueName(queueName: String): Unit = {}
 }
 class SparkStreamingStrategySpec extends FunSpec with MockitoSugar {
+  val host = "local[2]"
+
+  def createStrategy():SparkStreamingStrategy = {
+    val publisher = new MockPublisher
+    val receiver = new MockReceiver
+    val logCalculator = new LogCalculatorImpl()
+    new SparkStreamingStrategy(host, logCalculator, new BenchmarkSeeding(1000), receiver)
+  }
   describe("SparkStreamingStrategy"){
     describe("when data in database") {
       //hack this to get a basic test idea up and running
@@ -67,16 +76,11 @@ class SparkStreamingStrategySpec extends FunSpec with MockitoSugar {
 
       cluster.close()
       describe("on init") {
-        val host = "local[2]"
-        val logCalculator = new LogCalculatorImpl()
+    //    val sparkStreamingStrategy = createStrategy()
         /*val publisher = mock[ZeroMQPublisher]*/
-        val publisher = new MockPublisher
-        val receiver = new MockReceiver
-        val sparkStreamingStrategy = new SparkStreamingStrategy(host, logCalculator, new BenchmarkSeeding(1000),
-          receiver)
-        it("stores master") {
-          assert(sparkStreamingStrategy.getMaster === host)
-        }
+       // it("stores master") {
+          //assert(sparkStreamingStrategy.getMaster === host)
+        //}
         /*
 
         it("it should be already be listening for messages with id") {

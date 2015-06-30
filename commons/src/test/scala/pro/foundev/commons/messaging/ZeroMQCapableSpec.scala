@@ -21,7 +21,7 @@ package pro.foundev.commons.messaging
 import akka.util.ByteString
 import org.scalatest.concurrent.Eventually
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
-import pro.foundev.commons.test_support.{ZeroMQTestPublisher, RDDCounter, SparkStreamingSpec}
+import pro.foundev.commons.test_support.{ZeroMQTestPublisher, RDDCounter, SparkStreamingSupport}
 
 import scala.collection.mutable
 
@@ -34,7 +34,7 @@ import scala.collection.mutable
 class ZeroMQCapableImpl extends ZeroMQCapable with Serializable{
 
 }
-class ZeroMQCapableSpec extends FlatSpec with SparkStreamingSpec with GivenWhenThen with Matchers with Eventually{
+class ZeroMQCapableSpec extends FlatSpec with SparkStreamingSupport with GivenWhenThen with Matchers with Eventually{
   // default timeout for eventually trait
 //  implicit override val patienceConfig =
  //   PatienceConfig(timeout = scaled(Span(1500, Millis)))

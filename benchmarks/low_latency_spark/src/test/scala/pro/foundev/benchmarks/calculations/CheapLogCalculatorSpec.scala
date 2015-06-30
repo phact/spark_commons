@@ -20,10 +20,10 @@ import java.net.InetAddress
 
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
 import pro.foundev.calculations.CheapLogCalculator
-import pro.foundev.commons.test_support.SparkSpec
+import pro.foundev.commons.test_support.SparkSupport
 import pro.foundev.dto.IpLog
 
-class CheapLogCalculatorSpec extends FunSpec with SparkSpec with Matchers with BeforeAndAfterEach{
+class CheapLogCalculatorSpec extends FunSpec with SparkSupport with Matchers with BeforeAndAfterEach{
   var logCalculator: CheapLogCalculator = _
 
   override def beforeEach(){

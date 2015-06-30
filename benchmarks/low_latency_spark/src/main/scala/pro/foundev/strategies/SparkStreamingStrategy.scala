@@ -35,6 +35,7 @@ class SparkStreamingStrategy(master:String,
                              benchmarkSeeding: BenchmarkSeeding,
                               receiver: AbstractQueueReceiver)
   extends BenchmarkStrategy(master) with Serializable{
+    println("configured master for spark streaming is " + master)
   val sc: StreamingContext = initStream
   val topic = "benchmark"
   val mqUrl = "tcp://"+getMaster + ":10050"
@@ -86,11 +87,12 @@ class SparkStreamingStrategy(master:String,
     val level: Level = Level.ERROR
     Logger.getLogger("org").setLevel(level)
     Logger.getLogger("akka").setLevel(level)
-    val host = master
-
+    val host = getHost(master)
     val sparkConf = new SparkConf()
       .set("driver.host", host)
+      .set("spark.driver.allowMultipleContexts", "true")
       .setAppName("My application")
+      .set("spark.cassandra.connection.host",host)
       .set("spark.cassandra.output.concurrent.writes","1")
       .set("spark.cassandra.output.batch.size.rows", "1")
       .set("spark.cassandra.input.split.size", "10000")

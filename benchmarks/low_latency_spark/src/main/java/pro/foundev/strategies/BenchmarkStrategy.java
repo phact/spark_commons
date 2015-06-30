@@ -28,12 +28,18 @@ public abstract class BenchmarkStrategy {
     private final String master;
 
     public BenchmarkStrategy(String master) {
-
         this.master = master;
     }
 
     protected String getMaster(){return master;}
     protected String getMasterUrl(){return "spark://" + master + ":7077";}
+    protected String getHost(String master){
+        if(master.startsWith("local")){
+            return "127.0.0.1";
+        }else{
+            return master;
+        }
+    }
 
     protected abstract String getStrategyName();
     protected abstract void executeCheapComputationOnSinglePartition();

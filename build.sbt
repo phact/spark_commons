@@ -39,33 +39,39 @@ lazy val commons = (project in file("commons")).
   settings(commonSettings: _*)
 
 lazy val connector_tuning_benchmark = (project in file("benchmarks/connector_tuning"))
-  .dependsOn(commons)
+  .dependsOn(commons % "compile->compile;test->test")
   .settings(commonSettings: _*)
 
 lazy val low_latency_spark_benchmark = (project in file("benchmarks/low_latency_spark"))
-  .dependsOn(commons)
+  .dependsOn(commons % "compile->compile;test->test")
   .settings(commonSettings: _*)
 
 lazy val spark_streaming_throughput_benchmark = (project in file("benchmarks/spark_streaming_throughput"))
-  .dependsOn(commons)
+  .dependsOn(commons % "compile->compile;test->test")
+  .settings(commonSettings: _*)
+
+lazy val spark_throughput_benchmark = (project in file("benchmarks/spark_throughput"))
+  .dependsOn(commons % "compile->compile;test->test")
   .settings(commonSettings: _*)
 
 lazy val ft_spark_streaming_benchmark = (project in file("benchmarks/ft_spark_streaming"))
-  .dependsOn(commons)
+  .dependsOn(commons % "compile->compile;test->test")
   .settings(commonSettings: _*)
 
 lazy val iot_reference_example = (project in file("examples/iot_reference"))
-    .dependsOn(commons)
+  .dependsOn(commons % "compile->compile;test->test")
    .settings(commonSettings: _*)
 
 lazy val jdbc_example = (project in file("examples/jdbc_example"))
-    .dependsOn(commons)
+  .dependsOn(commons % "compile->compile;test->test")
    .settings(commonSettings: _*)
 
 lazy val spark_bulk_operations_example = (project in file("examples/spark_bulk_operations"))
-    .dependsOn(commons)
+  .dependsOn(commons % "compile->compile;test->test")
    .settings(commonSettings: _*)
 
 lazy val spark_streaming_example = (project in file("examples/spark_streaming"))
     .dependsOn(commons)
    .settings(commonSettings: _*)
+
+testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oG")

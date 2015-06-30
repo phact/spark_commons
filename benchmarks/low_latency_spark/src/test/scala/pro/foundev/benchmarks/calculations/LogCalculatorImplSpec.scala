@@ -20,10 +20,10 @@ import java.net.InetAddress
 
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
 import pro.foundev.calculations.{LogCalculator, LogCalculatorImpl}
-import pro.foundev.commons.test_support.SparkSpec
+import pro.foundev.commons.test_support.SparkSupport
 import pro.foundev.dto.{IpLog, SessionReport}
 
-class LogCalculatorImplSpec extends FunSpec with SparkSpec with Matchers with BeforeAndAfterEach{
+class LogCalculatorImplSpec extends FunSpec with SparkSupport with Matchers with BeforeAndAfterEach{
   var logCalculator: LogCalculator = _
 
   override def beforeEach(){
@@ -36,7 +36,7 @@ class LogCalculatorImplSpec extends FunSpec with SparkSpec with Matchers with Be
 
   describe("empty urls"){
     def buildList(): List[IpLog] ={
-      val log1 = new IpLog(1, "TX", InetAddress.getLocalHost, List[String]())
+      val log1 = new IpLog(1, "TX", InetAddress.getLocalHost, List[String]("127.0.0.1", "122.12.12.12"))
       val log2 = new IpLog(2, "IN", InetAddress.getLoopbackAddress, List[String]())
        List[IpLog](log1, log2)
     }
@@ -47,7 +47,7 @@ class LogCalculatorImplSpec extends FunSpec with SparkSpec with Matchers with Be
     }
     it("should return an average of 0"){
       val sessionReport = buildSession(buildList())
-      sessionReport.averageClicksPerSession should equal(0)
+      sessionReport.averageClicksPerSession should equal(1.0)
     }
   }
 

@@ -27,7 +27,7 @@ import org.scalatest.Suite
  * as far as the microbatch process is concerned. Taken from http://mkuthan.github.io/blog/2015/03/01/spark-unit-testing/
  * Temporary directory is created for checkpoint dir
  */
-trait SparkStreamingSpec extends SparkSpec {
+trait SparkStreamingSupport extends SparkSupport {
   this: Suite =>
 
   private var _ssc: StreamingContext = _

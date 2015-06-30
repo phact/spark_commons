@@ -22,11 +22,11 @@ import com.datastax.driver.core.Session
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.scalatest.{BeforeAndAfterEach, BeforeAndAfterAll, FunSpec, Matchers}
 import pro.foundev.Configuration
-import pro.foundev.commons.test_support.SparkSpec
+import pro.foundev.commons.test_support.SparkSupport
 import pro.foundev.dto.IpLog
 import pro.foundev.ingest.SchemaCreation
 
-class CassandraRepositorySpec extends FunSpec with SparkSpec with Matchers with BeforeAndAfterAll with BeforeAndAfterEach{
+class CassandraRepositorySpec extends FunSpec with SparkSupport with Matchers with BeforeAndAfterAll with BeforeAndAfterEach{
 
   var cassandraRepository: CassandraRepository = new CassandraRepository()
   var connector: CassandraConnector = _

@@ -19,7 +19,7 @@ package pro.foundev.commons.test_support
 import org.apache.spark._
 import org.scalatest._
 
-trait SparkSpec extends BeforeAndAfterAll {
+trait SparkSupport extends BeforeAndAfterAll {
   this: Suite =>
 
   private val master = "local[2]"
