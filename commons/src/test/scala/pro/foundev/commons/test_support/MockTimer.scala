@@ -19,11 +19,12 @@ package pro.foundev.commons.test_support
 import pro.foundev.commons.benchmarking.Timer
 
 class MockTimer extends Timer {
-
-  def setLastProfile(nanos: Long) = {
-    _lastProfile = nanos
+  private var duration: Long = 0
+  def setDuration(nanos: Long) = {
+    duration = nanos
   }
   def profile[R](callback: () => R):R = {
+    _lastProfile = duration
     callback()
   }
 

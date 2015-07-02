@@ -48,11 +48,12 @@ class BenchmarkLauncher(sc:SparkContext, timer: Timer = new SystemTimer()) {
   }
 
   def abbreviatedMax():Result ={
-    val rdd =  cassandraValues()
-      .take(1)
+    val max = timer.profile(()=>{
+      cassandraValues()
+        .take(1)
       .reduce((v1,v2)=>if(v1>v2){v1}; else{v2})
-    val max = rdd
-    new Result("short max", 0.0, max)
+    })
+    new Result("abbreviatedMax", getMillis(), max)
   }
 
   def max():Result={
@@ -64,9 +65,11 @@ class BenchmarkLauncher(sc:SparkContext, timer: Timer = new SystemTimer()) {
   }
 
   def sqlMax():Result={
-    val rdd: SchemaRDD = new CassandraSQLContext(sc).sql("SELECT MAX(c1) from "+keyspace+"."+table)
-    val max: Int = rdd.take(1)(0).getInt(0)
-    new Result("sql max", 0.0, max)
+    val max = timer.profile(()=>{
+      val rdd: SchemaRDD = new CassandraSQLContext(sc).sql("SELECT MAX(value) from "+keyspace+"."+table)
+      rdd.take(1)(0).getInt(0)
+    })
+    new Result("sqlMax", getMillis(), max)
   }
 
   private def getMillis():Double = {
