@@ -64,8 +64,8 @@ class BenchmarkRun(bench: BenchmarkLauncher, printer: PrintService=new StdPrintS
 }
 
 class BenchmarkLauncher(sc:SparkContext, timer: Timer = new SystemTimer()) {
-  val keyspace = "keyspace1"
-  val table = "standard1"
+  val keyspace = "spark_test"
+  val table = "records"
 
   def warmUp():Unit = {
     max

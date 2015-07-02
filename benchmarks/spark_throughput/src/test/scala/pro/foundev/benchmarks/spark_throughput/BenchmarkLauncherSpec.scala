@@ -35,8 +35,8 @@ class BenchmarkLauncherSpec extends CommonsTestSupport {
   before {
     timer = new MockTimer()
     benchmarkLauncher = new BenchmarkLauncher(sc, timer)
-    makeKeyspace("keyspace1")
-    makeTable("keyspace1.standard1", Seq(("key","int"), ("value","int")), "key")
+    makeKeyspace("spark_test")
+    makeTable("spark_test.records", Seq(("key","int"), ("value","int")), "key")
     cql("INSERT INTO keyspace1.standard1 (key, value) values (1, 5)")
     cql("INSERT INTO keyspace1.standard1 (key, value) values (2, 10)")
     cql("INSERT INTO keyspace1.standard1 (key, value) values (3, 1)")
