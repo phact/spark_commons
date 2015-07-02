@@ -32,7 +32,9 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= testDependencies,
   resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
   parallelExecution in Test := false,
-  fork in Test := true
+  fork in Test := true,
+  testOptions in Test += Tests.Argument("-oI")
+
 )
 
 lazy val commons = (project in file("commons")).
@@ -74,4 +76,4 @@ lazy val spark_streaming_example = (project in file("examples/spark_streaming"))
     .dependsOn(commons)
    .settings(commonSettings: _*)
 
-testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oG")
+

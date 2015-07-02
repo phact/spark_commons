@@ -17,6 +17,30 @@
 package pro.foundev.benchmarks.spark_throughput
 
 import org.scalatest._
+import pro.foundev.commons.test_support._
 
-class BenchmarkLauncherSpec extends FlatSpec with Matchers{
+class BenchmarkLauncherSpec extends CommonsTestSupport {
+
+  var benchmarkLauncher: BenchmarkLauncher = _
+  var timer: MockTimer = new MockTimer()
+  var maxResult: Result = _
+  before {
+    benchmarkLauncher = new BenchmarkLauncher(sc, timer)
+    makeKeyspace("keyspace1")
+    makeTable("keyspace1.standard1", Seq(("key","int"), ("value","int")), "key")
+    cql("INSERT INTO keyspace1.standard1 (key, value) values (1, 5)")
+    cql("INSERT INTO keyspace1.standard1 (key, value) values (2, 10)")
+    cql("INSERT INTO keyspace1.standard1 (key, value) values (3, 1)")
+  }
+
+  "A BenchmarkLauncher" should "get a max value" in {
+    benchmarkLauncher.max.value should be (10)
+  }
+  it should "have the name of max" in {
+    benchmarkLauncher.max.name should be ("max")
+  }
+  it should "time the result" in {
+    timer.setLastProfile(2000)
+    benchmarkLauncher.max.milliSeconds should be (0.002)
+  }
 }
