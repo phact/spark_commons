@@ -37,9 +37,9 @@ class BenchmarkLauncherSpec extends CommonsTestSupport {
     benchmarkLauncher = new BenchmarkLauncher(sc, timer)
     makeKeyspace("spark_test")
     makeTable("spark_test.records", Seq(("key","int"), ("value","int")), "key")
-    cql("INSERT INTO keyspace1.standard1 (key, value) values (1, 5)")
-    cql("INSERT INTO keyspace1.standard1 (key, value) values (2, 10)")
-    cql("INSERT INTO keyspace1.standard1 (key, value) values (3, 1)")
+    cql("INSERT INTO spark_test.records (key, value) values (1, 5)")
+    cql("INSERT INTO spark_test.records (key, value) values (2, 10)")
+    cql("INSERT INTO spark_test.records (key, value) values (3, 1)")
   }
 
   "A BenchmarkLauncher" should "get a max value" in {
@@ -47,6 +47,7 @@ class BenchmarkLauncherSpec extends CommonsTestSupport {
   }
   it should "have the name of max" in {
     benchmarkLauncher.max.name should be ("max")
+
   }
   it should "time the result" in {
     timer.setDuration(2000)
