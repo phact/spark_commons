@@ -14,29 +14,54 @@
  * limitations under the License.
  */
 
-/***
- * 
- */
 package pro.foundev.benchmarks.spark_throughput
 
 import com.datastax.spark.connector.rdd._
 import com.datastax.spark.connector._
+import com.datastax.bdp.spark.DseSparkContext
 import org.apache.spark.SparkContext
+import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
-import pro.foundev.commons.benchmarking.Timer
-import pro.foundev.commons.benchmarking.SystemTimer
+import pro.foundev.commons.benchmarking._
 
 object BenchmarkLauncher {
   def main(args: Array[String])={
-    println("start benchmarks")
-    //"SELECT COUNT(*) FROM "
-    println("benchmark done")
+         val sc: SparkContext = DseSparkContext(new SparkConf()
+      .set("driver.host", args(0))
+      .setAppName("spark throughput")
+      //.set("spark.cassandra.output.concurrent.writes","1")
+      //.set("spark.cassandra.output.batch.size.rows", "1")
+      //.set("spark.cassandra.input.split.size", "10000")
+      //.set("spark.cassandra.input.page.row.size", "10")
+      .set("spark.eventLog.enabled", "true")
+      //necessary to set jar for api submission
+      .setJars(Array("spark_throughput-assembly.jar"))
+      .setMaster(args(1))
+    )
+    val bench = new BenchmarkLauncher(sc)
+    new BenchmarkRun(bench).exec()
   }
 
 }
 case class Result(name:String, milliSeconds: Double, value: Int){}
+class BenchmarkRun(bench: BenchmarkLauncher, printer: PrintService=new StdPrintService()){
+
+  def exec(): Unit = {
+    printer.println("start benchmarks")
+    bench.warmUp()
+    logResults(bench.abbreviatedMax)
+    logResults(bench.max)
+    logResults(bench.sqlMax)
+    printer.println("benchmark done")
+  }
+
+  private def logResults(f:()=>Result):Unit = {
+    val results = f()
+    printer.println(results.milliSeconds + " milliseconds to run " + results.name)
+  }
+}
 
 class BenchmarkLauncher(sc:SparkContext, timer: Timer = new SystemTimer()) {
   val keyspace = "keyspace1"

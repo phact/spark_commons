@@ -18,7 +18,14 @@ package pro.foundev.benchmarks.spark_throughput
 
 import org.scalatest._
 import pro.foundev.commons.test_support._
+import pro.foundev.commons.benchmarking._
 
+class MockPrint extends PrintService{
+  val messages: scala.collection.mutable.ArrayBuffer[String] = scala.collection.mutable.ArrayBuffer.empty[String]
+  def println(message:String) = {
+    messages += message
+  }
+}
 class BenchmarkLauncherSpec extends CommonsTestSupport {
 
   var benchmarkLauncher: BenchmarkLauncher = _
@@ -65,6 +72,17 @@ class BenchmarkLauncherSpec extends CommonsTestSupport {
   it should "time the result of abbreviatedMax" in {
     timer.setDuration(2000)
     benchmarkLauncher.abbreviatedMax.milliSeconds should be (0.002)
+  }
+  //TODO: hack to get this done quickly, move elsewhere
+  "A BenchmarkRun" should "log results of benchmarks" in {
+    val mockPrint = new MockPrint()
+    timer.setDuration(2000000)
+    new BenchmarkRun(benchmarkLauncher, mockPrint).exec()
+    mockPrint.messages(0) should be ("start benchmarks")
+    mockPrint.messages(1) should be ("2.0 milliseconds to run abbreviatedMax")
+    mockPrint.messages(2) should be ("2.0 milliseconds to run max")
+    mockPrint.messages(3) should be ("2.0 milliseconds to run sqlMax")
+    mockPrint.messages(4) should be ("benchmark done")
   }
 
 
