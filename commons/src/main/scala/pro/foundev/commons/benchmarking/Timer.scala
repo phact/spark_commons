@@ -23,4 +23,8 @@ package pro.foundev.commons.benchmarking
    }
 
    def profile[R](callback: () => R):R
+
+   def getMillis():Double = {
+     lastProfile/1000000.0
+  }
  }
