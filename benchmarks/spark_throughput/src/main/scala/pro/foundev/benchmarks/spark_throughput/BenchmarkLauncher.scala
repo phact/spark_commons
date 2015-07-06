@@ -28,48 +28,47 @@ import pro.foundev.commons.benchmarking._
 
 object BenchmarkLauncher {
   def main(args: Array[String])={
-         val sc: SparkContext = DseSparkContext(new SparkConf()
+    val sc: SparkContext = DseSparkContext(new SparkConf()
       .set("driver.host", args(0))
       .setAppName("spark throughput")
-      //.set("spark.cassandra.output.concurrent.writes","1")
-      //.set("spark.cassandra.output.batch.size.rows", "1")
-      //.set("spark.cassandra.input.split.size", "10000")
-      //.set("spark.cassandra.input.page.row.size", "10")
       .set("spark.eventLog.enabled", "true")
       //necessary to set jar for api submission
       .setJars(Array("spark_throughput-assembly.jar"))
       .setMaster(args(1))
     )
-    val bench = new BenchmarkLauncher(sc)
-    new BenchmarkRun(bench).exec()
+    val tableSuffixes = Array("10k", "100k", "10m", "1b")
+    val benches = tableSuffixes.map(s=>new BenchmarkLauncher(sc, s))
+    new BenchmarkRun(benches).exec()
   }
 
 }
-case class Result(name:String, milliSeconds: Double, value: Int){}
-class BenchmarkRun(bench: BenchmarkLauncher, printer: PrintService=new StdPrintService()){
+case class Result(name:String, milliSeconds: Double, value: Int, records: String){}
+class BenchmarkRun(benches: Array[BenchmarkLauncher], printer: PrintService=new StdPrintService()){
 
   def exec(): Unit = {
     printer.println("start benchmarks")
-    bench.warmUp()
-    logResults(bench.abbreviatedMax)
-    logResults(bench.max)
-    logResults(bench.sqlMax)
+    benches.foreach(b=>b.warmUp())
+    benches.foreach(b=>logResults(b.abbreviatedMax))
+    benches.foreach(b=>logResults(b.max))
+    benches.foreach(b=>logResults(b.sqlMax))
     printer.println("benchmark done")
   }
 
   private def logResults(f:()=>Result):Unit = {
     val results = f()
-    printer.println(results.milliSeconds + " milliseconds to run " + results.name)
+    printer.println(results.milliSeconds + " milliseconds to run " + results.name + " on " + results.records  +" records")
   }
 }
 
-class BenchmarkLauncher(sc:SparkContext, timer: Timer = new SystemTimer()) {
+class BenchmarkLauncher(sc:SparkContext, tableSuffix: String, timer: Timer = new SystemTimer()) {
+
   val keyspace = "spark_test"
-  val table = "records"
+  val table = "records_"
 
   def warmUp():Unit = {
-    max
-    sqlMax
+    abbreviatedMax()
+    max()
+    sqlMax()
   }
 
   def abbreviatedMax():Result ={
@@ -78,7 +77,7 @@ class BenchmarkLauncher(sc:SparkContext, timer: Timer = new SystemTimer()) {
         .take(1)
       .reduce((v1,v2)=>if(v1>v2){v1}; else{v2})
     })
-    new Result("abbreviatedMax", getMillis(), max)
+    new Result("abbreviatedMax", getMillis(), max, tableSuffix)
   }
 
   def max():Result={
@@ -86,15 +85,16 @@ class BenchmarkLauncher(sc:SparkContext, timer: Timer = new SystemTimer()) {
       cassandraValues()
       .reduce((v1,v2)=>if(v1>v2){v1}; else{v2})
     })
-    new Result("max", getMillis(), max)
+    new Result("max", getMillis(), max, tableSuffix)
   }
 
   def sqlMax():Result={
     val max = timer.profile(()=>{
-      val rdd: SchemaRDD = new CassandraSQLContext(sc).sql("SELECT MAX(value) from "+keyspace+"."+table)
+      val rdd: SchemaRDD = new CassandraSQLContext(sc)
+        .sql("SELECT MAX(value) from "+keyspace+"."+table+ tableSuffix)
       rdd.take(1)(0).getInt(0)
     })
-    new Result("sqlMax", getMillis(), max)
+    new Result("sqlMax", getMillis(), max, tableSuffix)
   }
 
   private def getMillis():Double = {
@@ -102,7 +102,7 @@ class BenchmarkLauncher(sc:SparkContext, timer: Timer = new SystemTimer()) {
   }
 
   private def cassandraValues(): RDD[Int] = {
-    sc.cassandraTable(keyspace, table)
+    sc.cassandraTable(keyspace, table+tableSuffix)
       .map(row=>row.getInt(1))
   }
 }

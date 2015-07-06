@@ -30,16 +30,24 @@ class BenchmarkLauncherSpec extends CommonsTestSupport {
 
   var benchmarkLauncher: BenchmarkLauncher = _
   var timer: MockTimer = _
-  var maxResult: Result = _
+
+  def addRecords(tableSuffix: String):Unit = {
+    cql("INSERT INTO spark_test.records_"+tableSuffix+" (key, value) values (1, 5)")
+    cql("INSERT INTO spark_test.records_"+tableSuffix+" (key, value) values (2, 10)")
+    cql("INSERT INTO spark_test.records_"+tableSuffix+" (key, value) values (3, 1)")
+  }
+
+  def createTableWithSuffix(tableSuffix:String):Unit = {
+    makeTable("spark_test.records_"+tableSuffix, Seq(("key","int"), ("value","int")), "key")
+  }
 
   before {
     timer = new MockTimer()
-    benchmarkLauncher = new BenchmarkLauncher(sc, timer)
+    val tableSuffix = "10k"
+    benchmarkLauncher = new BenchmarkLauncher(sc, tableSuffix, timer)
     makeKeyspace("spark_test")
-    makeTable("spark_test.records", Seq(("key","int"), ("value","int")), "key")
-    cql("INSERT INTO spark_test.records (key, value) values (1, 5)")
-    cql("INSERT INTO spark_test.records (key, value) values (2, 10)")
-    cql("INSERT INTO spark_test.records (key, value) values (3, 1)")
+    createTableWithSuffix(tableSuffix)
+    addRecords(tableSuffix)
   }
 
   "A BenchmarkLauncher" should "get a max value" in {
@@ -78,13 +86,20 @@ class BenchmarkLauncherSpec extends CommonsTestSupport {
   "A BenchmarkRun" should "log results of benchmarks" in {
     val mockPrint = new MockPrint()
     timer.setDuration(2000000)
-    new BenchmarkRun(benchmarkLauncher, mockPrint).exec()
+    val benchmarkLauncher100k = new BenchmarkLauncher(sc, "100k", timer)
+    createTableWithSuffix("100k")
+    addRecords("100k")
+    val launchers= Array(benchmarkLauncher, benchmarkLauncher100k)
+    new BenchmarkRun(launchers, mockPrint).exec()
     mockPrint.messages(0) should be ("start benchmarks")
-    mockPrint.messages(1) should be ("2.0 milliseconds to run abbreviatedMax")
-    mockPrint.messages(2) should be ("2.0 milliseconds to run max")
-    mockPrint.messages(3) should be ("2.0 milliseconds to run sqlMax")
-    mockPrint.messages(4) should be ("benchmark done")
+    mockPrint.messages(1) should be ("2.0 milliseconds to run abbreviatedMax on 10k records")
+    mockPrint.messages(2) should be ("2.0 milliseconds to run abbreviatedMax on 100k records")
+    mockPrint.messages(3) should be ("2.0 milliseconds to run max on 10k records")
+    mockPrint.messages(4) should be ("2.0 milliseconds to run max on 100k records")
+    mockPrint.messages(5) should be ("2.0 milliseconds to run sqlMax on 10k records")
+    mockPrint.messages(6) should be ("2.0 milliseconds to run sqlMax on 100k records")
+    mockPrint.messages(7) should be ("benchmark done")
   }
 
-
 }
+
