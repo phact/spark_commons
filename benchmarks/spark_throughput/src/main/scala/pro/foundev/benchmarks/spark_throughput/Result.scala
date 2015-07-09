@@ -15,4 +15,4 @@
  */
 package pro.foundev.benchmarks.spark_throughput
 
-case class Result(name:String, milliSeconds: Double, value: Int, records: String){}
+case class Result(name:String, milliSeconds: Double, value: Long, records: String){}

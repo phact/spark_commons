@@ -32,10 +32,24 @@ object BenchmarkRun {
     )
     val printer = new StdPrintService()
     val tableSuffixes = Array("10k", "100k", "10m", "1b")
-    val maxBenches = tableSuffixes.map(s=>new MaxBenchmarkLauncher(sc, s))
-    new BenchmarkRun(maxBenches, printer).exec()
-    val minBenches = tableSuffixes.map(s=>new MinBenchmarkLauncher(sc, s))
-    new BenchmarkRun(minBenches, printer).exec()
+    val runBenches = ( fac: (SparkContext, String) => BenchmarkLauncher )=>{
+      val benches = tableSuffixes.map(s=>fac(sc, s))
+      new BenchmarkRun(benches, printer).exec()
+    }
+    runBenches((sc, s)=>new DistinctBenchmarkLauncher(sc,s))
+    runBenches((sc, s)=>new CogroupBenchmarkLauncher(sc,s))
+    runBenches((sc, s)=>new CountBenchmarkLauncher(sc,s))
+    runBenches((sc, s)=>new CountByBenchmarkLauncher(sc,s))
+    runBenches((sc, s)=>new FilterBenchmarkLauncher(sc,s))
+    runBenches((sc, s)=>new FirstBenchmarkLauncher(sc,s))
+    runBenches((sc, s)=>new GroupByBenchmarkLauncher(sc,s))
+    runBenches((sc, s)=>new IntersectBenchmarkLauncher(sc,s))
+    runBenches((sc, s)=>new JoinBenchmarkLauncher(sc,s))
+    runBenches((sc, s)=>new MaxBenchmarkLauncher(sc,s))
+    runBenches((sc, s)=>new MinBenchmarkLauncher(sc,s))
+    runBenches((sc, s)=>new ReduceBenchmarkLauncher(sc,s))
+    runBenches((sc, s)=>new UnionBenchmarkLauncher(sc,s))
+    runBenches((sc, s)=>new TakeBenchmarkLauncher(sc,s))
   }
 }
 
@@ -44,7 +58,6 @@ class BenchmarkRun(benches: Seq[BenchmarkLauncher], printer: PrintService){
   def exec(): Unit = {
     printer.println("start benchmarks")
     benches.foreach(b=>b.warmUp())
-    benches.foreach(b=>logResults(b.one))
     benches.foreach(b=>logResults(b.all))
     benches.foreach(b=>logResults(b.sqlAll))
     printer.println("benchmark done")

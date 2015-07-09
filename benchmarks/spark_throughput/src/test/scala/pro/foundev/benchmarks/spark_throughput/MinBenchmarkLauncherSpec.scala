@@ -48,15 +48,4 @@ class MinBenchmarkLauncherSpec extends BenchmarkSupport {
     timer.setDuration(2000)
     benchmarkLauncherMin10k.sqlAll.milliSeconds should be (0.002)
   }
-  "A MinBenchmarkLauncher" should "get an abbreviatedMin value" in {
-    //this matches the first value inserted
-    benchmarkLauncherMin10k.one.value should be (1)
-  }
-  it should "have the name of abbreviatedMin" in {
-    benchmarkLauncherMin10k.one.name should be ("abbreviatedMin")
-  }
-  it should "time the result of abbreviatedMin" in {
-    timer.setDuration(2000)
-    benchmarkLauncherMin10k.one.milliSeconds should be (0.002)
-  }
-}
+ }

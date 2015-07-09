@@ -32,9 +32,7 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= testDependencies,
   resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
   parallelExecution in Test := false,
-  fork in Test := true,
-  testOptions in Test += Tests.Argument("-oI")
-
+  fork in Test := true
 )
 
 lazy val commons = (project in file("commons")).

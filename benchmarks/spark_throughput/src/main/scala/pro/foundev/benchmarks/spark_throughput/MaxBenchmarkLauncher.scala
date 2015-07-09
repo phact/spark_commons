@@ -23,15 +23,6 @@ import org.apache.spark.sql.SchemaRDD
 class MaxBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
-  override def one():Result ={
-    val max = timer.profile(()=>{
-      cassandraValues()
-        .take(1)
-      .reduce((v1,v2)=>if(v1>v2){v1}; else{v2})
-    })
-    new Result("abbreviatedMax", timer.getMillis(), max, tableSuffix)
-  }
-
   override def all():Result={
     val max = timer.profile(()=>{
       cassandraValues()

@@ -41,12 +41,10 @@ class BenchmarkRunSpec extends BenchmarkSupport {
   //TODO: hack to get this done quickly, move elsewhere
   "A BenchmarkRun" should "log results of benchmarks" in {
     mockPrint.messages(0) should be ("start benchmarks")
-    mockPrint.messages(1) should be ("2.0 milliseconds to run abbreviatedMax on 10k records")
-    mockPrint.messages(2) should be ("2.0 milliseconds to run abbreviatedMax on 100k records")
-    mockPrint.messages(3) should be ("2.0 milliseconds to run max on 10k records")
-    mockPrint.messages(4) should be ("2.0 milliseconds to run max on 100k records")
-    mockPrint.messages(5) should be ("2.0 milliseconds to run sqlMax on 10k records")
-    mockPrint.messages(6) should be ("2.0 milliseconds to run sqlMax on 100k records")
-    mockPrint.messages(7) should be ("benchmark done")
+    mockPrint.messages(1) should be ("2.0 milliseconds to run max on 10k records")
+    mockPrint.messages(2) should be ("2.0 milliseconds to run max on 100k records")
+    mockPrint.messages(3) should be ("2.0 milliseconds to run sqlMax on 10k records")
+    mockPrint.messages(4) should be ("2.0 milliseconds to run sqlMax on 100k records")
+    mockPrint.messages(5) should be ("benchmark done")
   }
 }

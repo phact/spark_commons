@@ -35,11 +35,17 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 import scala.Tuple2;
 
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * executable example of a working spark test.
+ * Very simplistic butit gets the job done
+ * TODO move me to sample worksheet
+ * */
 public class LoadingContextTest implements Serializable{
     private transient JavaStreamingContext ssc;
     private List<String> results;
@@ -49,9 +55,10 @@ public class LoadingContextTest implements Serializable{
         results = new ArrayList<>();
         SparkConf conf = new SparkConf()
                 .setAppName("test_app")
+                .set("spark.cassandra.connection.host", "127.0.0.1")
                 .setMaster("local[2]");
                // .set("spark.streaming.clock", "org.apache.spark.streaming.util.ManualClock");
-        SparkContext ctx = DseSparkContext.apply(conf);
+        SparkContext ctx = DseSparkContext.apply(conf); //relies on dse-4.7.0.jar included in dse-4.7.0/lib
         ssc = new JavaStreamingContext(new JavaSparkContext(ctx), new Duration(500));
         ssc.checkpoint("checkpoint");
     }
@@ -94,7 +101,7 @@ public class LoadingContextTest implements Serializable{
             }
         }).foreachRDD(func);
         ssc.start();
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         Collections.sort(results);
         Assert.assertEquals(3, results.size());
         Assert.assertEquals("1:3", results.get(0));

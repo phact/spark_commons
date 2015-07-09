@@ -1,0 +1,14 @@
+keyspace: spark_test
+keyspace_definition: |
+  CREATE KEYSPACE spark_test WITH replication = { 'class':'NetworkTopologyStrategy', 'Analytics':3 }
+table: records
+table_definition: |
+  CREATE TABLE records_1b ( id uuid, c0 bigint, PRIMARY KEY(id))
+insert:
+  partitions: fixed(1)
+  select: fixed(1)/1000
+  batchtype: UNLOGGED
+queries:
+  singlelookup:
+    cql: select * from records where id = ? LIMIT 1
+    fields: samerow

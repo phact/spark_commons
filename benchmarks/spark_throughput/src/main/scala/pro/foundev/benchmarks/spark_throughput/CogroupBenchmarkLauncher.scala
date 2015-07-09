@@ -13,37 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package pro.foundev.benchmarks.spark_throughput
 
+import com.datastax.spark.connector.rdd._
+import com.datastax.spark.connector._
+import com.datastax.bdp.spark.DseSparkContext
 import org.apache.spark.SparkContext
+import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
+import pro.foundev.commons.benchmarking._
+import org.apache.spark.SparkContext._
 
-class MinBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
+
+/**
+ * for now doing silly count to do local memory operation to fire the groupBy
+ **/
+class CogroupBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
   override def all():Result={
-    val max = timer.profile(()=>{
-      cassandraValues()
-      .reduce((v1,v2)=>if(v1<v2){v1}; else{v2})
+    val cogroupCount = timer.profile(()=>{
+        cassandraPairRDD
+        .cogroup(cassandraPairRDD)
+        .count()
     })
-    new Result("min", timer.getMillis(), max, tableSuffix)
+    new Result("cogroup", timer.getMillis(), cogroupCount, tableSuffix)
   }
 
   override def sqlAll():Result={
-    val max = timer.profile(()=>{
+    val cogroupCount  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT MIN(value) from "+keyspace+"."+table+ tableSuffix)
-      rdd.take(1)(0).getInt(0)
+        .sql("SELECT * from "+keyspace+"."+table+ tableSuffix + "a1 JOIN "+keyspace+"."+table+ tableSuffix + " a2 ON a1.id = a2.id GROUP BY id")
+      rdd.count()
     })
-    new Result("sqlMin", timer.getMillis(), max, tableSuffix)
-  }
-  private def cassandraValues(): RDD[Int] = {
-    cassandraRDD
-      .map(row=>row.getInt(1))
+    new Result("sqlCogroup", timer.getMillis(), cogroupCount, tableSuffix)
   }
 }
-
-
-

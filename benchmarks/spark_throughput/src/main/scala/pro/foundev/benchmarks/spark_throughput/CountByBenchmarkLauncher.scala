@@ -16,30 +16,22 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
-import org.scalatest._
-import pro.foundev.commons.test_support._
-import pro.foundev.commons.benchmarking._
-import scala.collection.mutable._
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkContext._
 
-class BenchmarkLauncherSpec extends BenchmarkSupport {
 
-  "A BenchmarkLauncher " should "run all methods on warmup" in  {
-    val allSpy = ArrayBuffer.empty[Int]
-    val sqlSpy = ArrayBuffer.empty[Int]
-    var launcher = new BenchmarkLauncher(sc, "10k"){
-      override def all():Result = {
-        allSpy += 2
-        null
-      }
+class CountByBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
+  extends BenchmarkLauncher(sc, tableSuffix) {
 
-      override def sqlAll():Result = {
-        sqlSpy += 3
-        null
-      }
-    }
-    launcher.warmUp()
-    sqlSpy.size should be (1)
-    allSpy.size should be (1)
+  override def all():Result={
+    val count = timer.profile(()=>{
+        cassandraPairRDD
+          .countByKey()
+    }).count(kvp=>true)
+    new Result("countBy", timer.getMillis(),count, tableSuffix)
+  }
+
+  override def sqlAll():Result={
+    new Result("sqlCountBy N/A", 0, 0, tableSuffix)
   }
 }
-

@@ -49,15 +49,5 @@ class MaxBenchmarkLauncherSpec extends BenchmarkSupport {
     timer.setDuration(2000)
     benchmarkLauncher.sqlAll.milliSeconds should be (0.002)
   }
-  "A MaxBenchmarkLauncher" should "get an abbreviatedMax value" in {
-    //this matches the first value inserted
-    benchmarkLauncher.one.value should be (1)
-  }
-  it should "have the name of abbreviatedMax" in {
-    benchmarkLauncher.one.name should be ("abbreviatedMax")
-  }
-  it should "time the result of abbreviatedMax" in {
-    timer.setDuration(2000)
-    benchmarkLauncher.one.milliSeconds should be (0.002)
-  }
+
 }

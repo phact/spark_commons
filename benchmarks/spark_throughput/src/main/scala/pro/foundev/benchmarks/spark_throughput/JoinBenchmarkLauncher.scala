@@ -13,37 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package pro.foundev.benchmarks.spark_throughput
 
+import com.datastax.spark.connector.rdd._
+import com.datastax.spark.connector._
 import org.apache.spark.SparkContext
+import org.apache.spark.SparkContext._
+import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
+import pro.foundev.commons.benchmarking._
 
-class MinBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
+
+/**
+ * for now doing silly count to do local memory operation to fire the join
+ **/
+class JoinBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
   override def all():Result={
-    val max = timer.profile(()=>{
-      cassandraValues()
-      .reduce((v1,v2)=>if(v1<v2){v1}; else{v2})
+    val joinCount = timer.profile(()=>{
+        cassandraPairRDD
+        .join(cassandraPairRDD)
+        .count()
     })
-    new Result("min", timer.getMillis(), max, tableSuffix)
+    new Result("join", timer.getMillis(), joinCount, tableSuffix)
   }
 
   override def sqlAll():Result={
-    val max = timer.profile(()=>{
+    val groupByCount  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT MIN(value) from "+keyspace+"."+table+ tableSuffix)
-      rdd.take(1)(0).getInt(0)
+        .sql("SELECT value from "+keyspace+"."+table+ tableSuffix + "a1 JOIN "+keyspace+"."+table+tableSuffix + " a2 ON a1.id = a2.id" )
+      rdd.count()
     })
-    new Result("sqlMin", timer.getMillis(), max, tableSuffix)
-  }
-  private def cassandraValues(): RDD[Int] = {
-    cassandraRDD
-      .map(row=>row.getInt(1))
+    new Result("sqlJoin", timer.getMillis(), groupByCount, tableSuffix)
   }
 }
-
-
-

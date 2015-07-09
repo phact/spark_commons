@@ -13,37 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package pro.foundev.benchmarks.spark_throughput
 
+import com.datastax.spark.connector.rdd._
+import com.datastax.spark.connector._
 import org.apache.spark.SparkContext
+import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
+import pro.foundev.commons.benchmarking._
 
-class MinBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
+class FirstBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
   override def all():Result={
-    val max = timer.profile(()=>{
-      cassandraValues()
-      .reduce((v1,v2)=>if(v1<v2){v1}; else{v2})
+    timer.profile(()=>{
+        cassandraRDD
+        .first()
     })
-    new Result("min", timer.getMillis(), max, tableSuffix)
+    new Result("first", timer.getMillis(), 1, tableSuffix)
   }
 
   override def sqlAll():Result={
-    val max = timer.profile(()=>{
+    timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT MIN(value) from "+keyspace+"."+table+ tableSuffix)
-      rdd.take(1)(0).getInt(0)
+        .sql("SELECT value from "+keyspace+"."+table+ tableSuffix + " LIMIT 1")
+      rdd.count()
     })
-    new Result("sqlMin", timer.getMillis(), max, tableSuffix)
-  }
-  private def cassandraValues(): RDD[Int] = {
-    cassandraRDD
-      .map(row=>row.getInt(1))
+    new Result("sqlFirst", timer.getMillis(), 1, tableSuffix)
   }
 }
-
-
-

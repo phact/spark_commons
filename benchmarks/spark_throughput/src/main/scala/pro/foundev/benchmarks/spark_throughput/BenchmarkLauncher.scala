@@ -19,6 +19,7 @@ package pro.foundev.benchmarks.spark_throughput
 import com.datastax.spark.connector.rdd._
 import com.datastax.spark.connector._
 import org.apache.spark.SparkContext
+import org.apache.spark.SparkContext._
 import pro.foundev.commons.benchmarking.SystemTimer
 import pro.foundev.commons.benchmarking.Timer
 
@@ -30,13 +31,13 @@ abstract class BenchmarkLauncher(sc:SparkContext, tableSuffix: String) {
   val keyspace = "spark_test"
   val table = "records_"
   val cassandraRDD = sc.cassandraTable(keyspace, table+tableSuffix)
+//  val cassandraPairRDD = cassandraRDD.select("id", "value") //doesn't work in 1.2
+  val cassandraPairRDD = cassandraRDD.map(x=>(x.getUUID(0), x.getInt(1)))
 
   def warmUp():Unit = {
-    one()
     all()
     sqlAll()
   }
-  def one():Result
   def all():Result
   def sqlAll():Result
 }
