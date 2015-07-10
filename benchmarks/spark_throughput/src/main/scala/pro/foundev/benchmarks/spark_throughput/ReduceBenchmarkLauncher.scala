@@ -16,33 +16,34 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
-import com.datastax.spark.connector.rdd._
-import com.datastax.spark.connector._
-import com.datastax.bdp.spark.DseSparkContext
-import org.apache.spark.SparkContext._
 import org.apache.spark.SparkContext
-import org.apache.spark.SparkConf
-import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SchemaRDD
-import org.apache.spark.sql.cassandra.CassandraSQLContext
-import pro.foundev.commons.benchmarking._
+import org.apache.spark.SparkContext._
 
 /**
- * replicating groupBy logic,
- * SQL is for groupBy versus reduce is identical so there is nothing to do, just a no-op
- **/
+ * Reduce benchmark. should show favorably against groupBy
+ * @param sc initialized Spark Context. This is needed to perform operations
+ * @param tableSuffix the convention here is a table will run against different record counts.
+ *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
+ */
 class ReduceBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
+  /**
+   * Standard reduce by key
+   * @return should be result of benchmark run
+   */
   override def all():Result={
     val groupByCount = timer.profile(()=>{
         cassandraPairRDD
         .reduceByKey(_ + _)
-        .count()
-    })
+    }).count()
     new Result("reduceByKey", timer.getMillis(), groupByCount, tableSuffix)
   }
 
+  /**
+   * No equivalent for reduce in SQL
+   * @return should be result of benchmark run
+   */
   override def sqlAll():Result={
     new Result("reduceBy not available", 0,0, tableSuffix)
   }

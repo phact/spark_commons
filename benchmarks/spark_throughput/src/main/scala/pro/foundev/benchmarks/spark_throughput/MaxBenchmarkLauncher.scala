@@ -20,9 +20,19 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SchemaRDD
 
+/**
+ * Max benchmark
+ * @param sc initialized Spark Context. This is needed to perform operations
+ * @param tableSuffix the convention here is a table will run against different record counts.
+ *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
+ */
 class MaxBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
+  /**
+   * Uses reduce method to get max
+   * @return should be result of benchmark run
+   */
   override def all():Result={
     val max = timer.profile(()=>{
       cassandraValues()
@@ -31,17 +41,21 @@ class MaxBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
     new Result("max", timer.getMillis(), max, tableSuffix)
   }
 
+  /**
+   * Spark Sql implementation of Max.
+   * @return should be result of benchmark run
+   */
   override def sqlAll():Result={
     val max = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT MAX(value) from "+keyspace+"."+table+ tableSuffix)
-      rdd.take(1)(0).getInt(0)
-    })
+        .sql("SELECT MAX(c0) from "+keyspace+"."+table+ tableSuffix)
+      rdd.collect()
+    })(0)(0).toString.toLong
     new Result("sqlMax", timer.getMillis(), max, tableSuffix)
   }
 
-  private def cassandraValues(): RDD[Int] = {
+  private def cassandraValues(): RDD[Long] = {
     cassandraRDD
-      .map(row=>row.getInt(1))
+      .map(row=>row.getLong(1))
   }
 }

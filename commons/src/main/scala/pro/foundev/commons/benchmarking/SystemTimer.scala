@@ -17,11 +17,11 @@
 package pro.foundev.commons.benchmarking
 
  class SystemTimer extends Timer {
-    def profile[R](callback: ()=>R):R = {
-      val t0 = System.nanoTime()
-      val result = callback()
-      val t1 = System.nanoTime()
-      _lastProfile = t1 - t0
-      result
-  }
+   def profile[R](callback: () => R): R = {
+     val t0 = System.nanoTime()
+     val result = callback()
+     val t1 = System.nanoTime()
+     _lastProfile = t1 - t0
+     result
+   }
  }

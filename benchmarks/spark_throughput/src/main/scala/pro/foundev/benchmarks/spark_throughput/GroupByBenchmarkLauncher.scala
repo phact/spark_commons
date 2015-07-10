@@ -23,11 +23,18 @@ import org.apache.spark.sql.cassandra.CassandraSQLContext
 
 
 /**
- * for now doing silly count to do local memory operation to fire the groupBy
- **/
+ * Group by implementation
+ * @param sc initialized Spark Context. This is needed to perform operations
+ * @param tableSuffix the convention here is a table will run against different record counts.
+ *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
+ */
 class GroupByBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
+  /**
+   * Group by executed on pairRDD. Note: Purpose of count is to execute results of groupBy
+   * @return should be result of benchmark run
+   */
   override def all():Result={
     val groupByCount = timer.profile(()=>{
         cassandraPairRDD
@@ -37,10 +44,14 @@ class GroupByBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
     new Result("groupBy", timer.getMillis(), groupByCount, tableSuffix)
   }
 
+  /**
+   * Group by using Spark SQL. Note: Purpose of count is to execute results of groupBy
+   * @return should be result of benchmark run
+   */
   override def sqlAll():Result={
     val groupByCount  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT value from "+keyspace+"."+table+ tableSuffix + " GROUP BY id")
+        .sql("SELECT c0 from "+keyspace+"."+table+ tableSuffix + " GROUP BY id")
       rdd.count()
     })
     new Result("sqlGroupBy", timer.getMillis(), groupByCount, tableSuffix)

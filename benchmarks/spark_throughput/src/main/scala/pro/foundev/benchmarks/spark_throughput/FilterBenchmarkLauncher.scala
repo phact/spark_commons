@@ -16,18 +16,23 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
-import com.datastax.spark.connector.rdd._
-import com.datastax.spark.connector._
 import org.apache.spark.SparkContext
-import org.apache.spark.SparkConf
-import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
-import pro.foundev.commons.benchmarking._
 
+/**
+ *
+ * @param sc initialized Spark Context. This is needed to perform operations
+ * @param tableSuffix the convention here is a table will run against different record counts.
+ *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
+ */
 class FilterBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
+  /**
+   * Spark implementation of RDD.filter matches everything intentionally. Should return all results
+   * @return should be result of benchmark run
+   */
   override def all():Result={
     val filterCount = timer.profile(()=>{
         cassandraRDD
@@ -37,10 +42,14 @@ class FilterBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
     new Result("filter", timer.getMillis(), filterCount, tableSuffix)
   }
 
+  /**
+   * SQL query that matches always, returns all results
+   * @return should be result of benchmark run
+   */
   override def sqlAll():Result={
     timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT value from "+keyspace+"."+table+ tableSuffix + " WHERE 1=1")
+        .sql("SELECT c0 from "+keyspace+"."+table + tableSuffix + " WHERE 1=1")
       rdd.count()
     })
     new Result("sqlFilter", timer.getMillis(), 1, tableSuffix)

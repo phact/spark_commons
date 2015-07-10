@@ -18,11 +18,22 @@ package pro.foundev.benchmarks.spark_throughput
 
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
+import org.apache.spark.sql.cassandra.CassandraSQLContext
 
-
+/**
+ * Will count by key, should always be 1
+ * @param sc initialized Spark Context. This is needed to perform operations
+ * @param tableSuffix the convention here is a table will run against different record counts.
+ *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
+ */
 class CountByBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
+  /**
+   * countByKey implementation. The RDD.count op is moved outside timer as response will come back in countBy. TODO: Concerned
+   * this may pollute benchmarking
+   * @return should be result of benchmark run
+   */
   override def all():Result={
     val count = timer.profile(()=>{
         cassandraPairRDD
@@ -31,7 +42,16 @@ class CountByBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
     new Result("countBy", timer.getMillis(),count, tableSuffix)
   }
 
+  /**
+   * Spark SQL version of countByKey.
+   * @return should be result of benchmark run
+   */
   override def sqlAll():Result={
-    new Result("sqlCountBy N/A", 0, 0, tableSuffix)
+    val countByCount  = timer.profile(()=> {
+      new CassandraSQLContext(sc)
+        .sql("SELECT COUNT(c0) from " + keyspace + "." + table + tableSuffix + " GROUP BY id")
+      .count()
+    })
+    new Result("sqlCountBy", timer.getMillis(), countByCount, tableSuffix)
   }
 }

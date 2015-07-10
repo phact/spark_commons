@@ -16,24 +16,25 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
-import com.datastax.spark.connector.rdd._
-import com.datastax.spark.connector._
-import com.datastax.bdp.spark.DseSparkContext
 import org.apache.spark.SparkContext
-import org.apache.spark.SparkContext._
-import org.apache.spark.SparkConf
-import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
-import pro.foundev.commons.benchmarking._
 
 
 /**
- * for now doing silly count to do local memory operation to fire the intersect
- **/
+ * Intersection benchmark
+ * @param sc initialized Spark Context. This is needed to perform operations
+ * @param tableSuffix the convention here is a table will run against different record counts.
+ *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
+ */
 class IntersectBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
+  /**
+   * Intersection executed on pairRDD. Note: Purpose of count is to execute results of intersection
+   * Performs intersection on the same table twice
+   * @return should be result of benchmark run
+   */
   override def all():Result={
     val intersectCount = timer.profile(()=>{
         cassandraPairRDD
@@ -43,11 +44,16 @@ class IntersectBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
     new Result("intersect", timer.getMillis(), intersectCount, tableSuffix)
   }
 
+  /**
+   * Intersection using Spark SQL. Note: Purpose of count is to execute results of intersection
+   * Performs intersection on the same table twice
+   * @return should be result of benchmark run
+   */
   override def sqlAll():Result={
     val intersect  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT value from "+keyspace+"."+table+ tableSuffix + " INTERSECT" +
-        " SELECT value from "+keyspace+"."+table+ tableSuffix)
+        .sql("SELECT * from "+keyspace+"."+table+ tableSuffix + " INTERSECT" +
+        " SELECT * from "+keyspace+"."+table+ tableSuffix)
       rdd.count()
     })
     new Result("sqlIntersect", timer.getMillis(), intersect, tableSuffix)

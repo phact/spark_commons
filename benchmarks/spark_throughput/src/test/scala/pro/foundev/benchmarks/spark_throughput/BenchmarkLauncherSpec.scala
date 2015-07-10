@@ -16,23 +16,20 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
-import org.scalatest._
-import pro.foundev.commons.test_support._
-import pro.foundev.commons.benchmarking._
 import scala.collection.mutable._
 
 class BenchmarkLauncherSpec extends BenchmarkSupport {
 
   "A BenchmarkLauncher " should "run all methods on warmup" in  {
-    val allSpy = ArrayBuffer.empty[Int]
-    val sqlSpy = ArrayBuffer.empty[Int]
-    var launcher = new BenchmarkLauncher(sc, "10k"){
-      override def all():Result = {
+    val allSpy = ArrayBuffer.empty[Long]
+    val sqlSpy = ArrayBuffer.empty[Long]
+    val launcher = new BenchmarkLauncher(sc, "10k") {
+      override def all(): Result = {
         allSpy += 2
         null
       }
 
-      override def sqlAll():Result = {
+      override def sqlAll(): Result = {
         sqlSpy += 3
         null
       }

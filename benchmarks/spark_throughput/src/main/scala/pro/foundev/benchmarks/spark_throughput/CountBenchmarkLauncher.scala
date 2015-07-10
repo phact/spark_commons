@@ -16,23 +16,26 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
-import com.datastax.spark.connector.rdd._
-import com.datastax.spark.connector._
-import com.datastax.bdp.spark.DseSparkContext
 import org.apache.spark.SparkContext
-import org.apache.spark.SparkConf
-import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
-import pro.foundev.commons.benchmarking._
-
 
 /**
+ *
+ * Count benchmark. Relies on the Spark Cassandra Connector count operations
  * for now doing silly count to do local memory operation to fire the groupBy
- **/
+ * @param sc initialized Spark Context. This is needed to perform operations
+ * @param tableSuffix the convention here is a table will run against different record counts.
+ *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
+ */
 class CountBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
+  /**
+   * Does a simple count. This will underneath use the Spark Cassandra Connector's implementation of count and
+   * not the traditional approach to counting that Spark uses
+   * @return should be result of benchmark run
+   */
   override def all():Result={
     val count = timer.profile(()=>{
         cassandraRDD
@@ -41,12 +44,17 @@ class CountBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
     new Result("count", timer.getMillis(), count, tableSuffix)
   }
 
+  /**
+   *  This SHOULD behave the same way as CassandraTableScanRDD.count()
+   *  TODO: verify underlying implementation
+   * @return should be result of benchmark run
+   */
   override def sqlAll():Result={
-    val groupByCount  = timer.profile(()=>{
+    val count  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
         .sql("SELECT COUNT(*) from "+keyspace+"."+table+ tableSuffix)
       rdd.count()
     })
-    new Result("sqlCount", timer.getMillis(), groupByCount, tableSuffix)
+    new Result("sqlCount", timer.getMillis(), count, tableSuffix)
   }
 }

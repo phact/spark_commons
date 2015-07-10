@@ -16,39 +16,46 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
-import com.datastax.spark.connector.rdd._
 import com.datastax.spark.connector._
-import com.datastax.bdp.spark.DseSparkContext
 import org.apache.spark.SparkContext
-import org.apache.spark.SparkConf
-import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
-import pro.foundev.commons.benchmarking._
 
 
 /**
- * for now doing silly count to do local memory operation to fire the distinct
- **/
+ * Benchmarks RDD.distinct()
+ * Note: there is an extra count to make distinct execute
+ * @param sc initialized Spark Context. This is needed to perform operations
+ * @param tableSuffix the convention here is a table will run against different record counts.
+ *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
+ */
 class DistinctBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
+  /**
+   * Implementation of RDD.distinct()
+   * @return should be result of benchmark run
+   */
   override def all():Result={
-    val groupByCount = timer.profile(()=>{
+    val distinctCount = timer.profile(()=>{
         cassandraRDD
-        .select("value")
+        .select("c0")
         .distinct()
         .count()
     })
-    new Result("distinct", timer.getMillis(), groupByCount, tableSuffix)
+    new Result("distinct", timer.getMillis(), distinctCount, tableSuffix)
   }
 
+  /**
+   * Spark SQL implementation of distinct
+   * @return should be result of benchmark run
+   */
   override def sqlAll():Result={
-    val groupByCount  = timer.profile(()=>{
+    val distinctCount  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT DISTINCT(value) from "+keyspace+"."+table+ tableSuffix)
+        .sql("SELECT DISTINCT(c0) from "+keyspace+"."+table+ tableSuffix)
       rdd.count()
     })
-    new Result("sqlDistinct", timer.getMillis(), groupByCount, tableSuffix)
+    new Result("sqlDistinct", timer.getMillis(), distinctCount, tableSuffix)
   }
 }

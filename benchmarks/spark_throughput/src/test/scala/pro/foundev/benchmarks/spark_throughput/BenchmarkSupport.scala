@@ -17,9 +17,9 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
+import java.util.UUID
+
 import org.scalatest._
-import com.datastax.spark.connector.rdd._
-import pro.foundev.commons.benchmarking._
 import pro.foundev.commons.test_support._
 
 class BenchmarkSupport extends CommonsTestSupport {
@@ -30,13 +30,13 @@ class BenchmarkSupport extends CommonsTestSupport {
   val tableSuffix = "10k"
 
   def addRecords(tableSuffix: String):Unit = {
-    cql("INSERT INTO spark_test.records_"+tableSuffix+" (key, value) values (1, 5)")
-    cql("INSERT INTO spark_test.records_"+tableSuffix+" (key, value) values (2, 10)")
-    cql("INSERT INTO spark_test.records_"+tableSuffix+" (key, value) values (3, 1)")
+    cql("INSERT INTO spark_test.records_"+tableSuffix+" (key, c0) values (" + UUID.randomUUID() + ", 5)")
+    cql("INSERT INTO spark_test.records_"+tableSuffix+" (key, c0) values (" + UUID.randomUUID() + ", 10)")
+    cql("INSERT INTO spark_test.records_"+tableSuffix+" (key, c0) values (" + UUID.randomUUID() + ", 1)")
   }
 
   def createTableWithSuffix(tableSuffix:String):Unit = {
-    makeTable("spark_test.records_"+tableSuffix, Seq(("key","int"), ("value","int")), "key")
+    makeTable("spark_test.records_"+tableSuffix, Seq(("key","uuid"), ("c0","bigint")), "key")
   }
 
   override def beforeEach {

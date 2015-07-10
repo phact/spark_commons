@@ -16,15 +16,9 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
-import com.datastax.spark.connector.rdd._
-import com.datastax.spark.connector._
-import com.datastax.bdp.spark.DseSparkContext
 import org.apache.spark.SparkContext
-import org.apache.spark.SparkConf
-import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
-import pro.foundev.commons.benchmarking._
 
 /**
  * for now doing silly count to do local memory operation to fire the union op
@@ -32,6 +26,10 @@ import pro.foundev.commons.benchmarking._
 class UnionBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
+  /**
+   *
+   * @return should be result of benchmark run
+   */
   override def all():Result={
     val unionCount = timer.profile(()=>{
       cassandraPairRDD.union(cassandraPairRDD)
@@ -40,11 +38,15 @@ class UnionBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
     new Result("union", timer.getMillis(), unionCount, tableSuffix)
   }
 
+  /**
+   *
+   * @return should be result of benchmark run
+   */
   override def sqlAll():Result={
     val unionCount  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT value from "+keyspace+"."+table+ tableSuffix + " UNION "+
-        "SELECT value from "+keyspace+"."+table+ tableSuffix)
+        .sql("SELECT * from "+keyspace+"."+table+ tableSuffix + " UNION ALL"+
+        "SELECT * from "+keyspace+"."+table+ tableSuffix)
       rdd.count()
     })
     new Result("sqlUnion", timer.getMillis(), unionCount, tableSuffix)

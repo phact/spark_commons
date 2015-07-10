@@ -16,10 +16,6 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
-import org.scalatest._
-import pro.foundev.commons.test_support._
-import pro.foundev.commons.benchmarking._
-
 class MinBenchmarkLauncherSpec extends BenchmarkSupport {
 
   override def beforeEach {
@@ -29,7 +25,7 @@ class MinBenchmarkLauncherSpec extends BenchmarkSupport {
   }
 
   "A MinBenchmarkLauncher" should "get a min value" in {
-    benchmarkLauncherMin10k.all.value should be (1)
+    benchmarkLauncherMin10k.all.value should be (1l)
   }
   it should "have the name of min" in {
     benchmarkLauncherMin10k.all.name should be ("min")
@@ -39,7 +35,7 @@ class MinBenchmarkLauncherSpec extends BenchmarkSupport {
     benchmarkLauncherMin10k.all.milliSeconds should be (0.002)
   }
   "A MinBenchmarkLauncher" should "get a sqlMin value" in {
-    benchmarkLauncherMin10k.sqlAll.value should be (1)
+    benchmarkLauncherMin10k.sqlAll.value should be (1l)
   }
   it should "have the name of sqlMin" in {
     benchmarkLauncherMin10k.sqlAll.name should be ("sqlMin")

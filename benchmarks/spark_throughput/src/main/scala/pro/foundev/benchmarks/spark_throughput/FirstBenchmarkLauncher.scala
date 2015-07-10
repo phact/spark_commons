@@ -16,18 +16,23 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
-import com.datastax.spark.connector.rdd._
-import com.datastax.spark.connector._
 import org.apache.spark.SparkContext
-import org.apache.spark.SparkConf
-import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
-import pro.foundev.commons.benchmarking._
 
+/**
+ * Simple benchmark of RDD.first
+ * @param sc initialized Spark Context. This is needed to perform operations
+ * @param tableSuffix the convention here is a table will run against different record counts.
+ *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
+ */
 class FirstBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
+  /**
+   * Simple retrieval of first record using RDD.first()
+   * @return should be result of benchmark run
+   */
   override def all():Result={
     timer.profile(()=>{
         cassandraRDD
@@ -36,10 +41,14 @@ class FirstBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
     new Result("first", timer.getMillis(), 1, tableSuffix)
   }
 
+  /**
+   * SQL limit 1 should be equivalent to RDD.first()
+   * @return should be result of benchmark run
+   */
   override def sqlAll():Result={
     timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT value from "+keyspace+"."+table+ tableSuffix + " LIMIT 1")
+        .sql("SELECT * from "+keyspace+"."+table+ tableSuffix + " LIMIT 1")
       rdd.count()
     })
     new Result("sqlFirst", timer.getMillis(), 1, tableSuffix)

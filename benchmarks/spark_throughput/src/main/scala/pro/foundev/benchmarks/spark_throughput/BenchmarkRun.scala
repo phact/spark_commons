@@ -20,8 +20,17 @@ import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
 import pro.foundev.commons.benchmarking._
 
+/**
+ * Responsible for the benchmarking spark job
+ */
 object BenchmarkRun {
+
+  /**
+   * Launches the Spark job that runs the benchmarks
+   * @param args requires only one argument which is where the driver host is located
+   */
   def main(args: Array[String])={
+
     val sc: SparkContext = DseSparkContext(new SparkConf()
       .set("driver.host", args(0))
       .setAppName("spark throughput")
@@ -36,10 +45,10 @@ object BenchmarkRun {
       val benches = tableSuffixes.map(s=>fac(sc, s))
       new BenchmarkRun(benches, printer).exec()
     }
-    runBenches((sc, s)=>new DistinctBenchmarkLauncher(sc,s))
     runBenches((sc, s)=>new CogroupBenchmarkLauncher(sc,s))
     runBenches((sc, s)=>new CountBenchmarkLauncher(sc,s))
     runBenches((sc, s)=>new CountByBenchmarkLauncher(sc,s))
+    runBenches((sc, s)=>new DistinctBenchmarkLauncher(sc,s))
     runBenches((sc, s)=>new FilterBenchmarkLauncher(sc,s))
     runBenches((sc, s)=>new FirstBenchmarkLauncher(sc,s))
     runBenches((sc, s)=>new GroupByBenchmarkLauncher(sc,s))
@@ -48,13 +57,22 @@ object BenchmarkRun {
     runBenches((sc, s)=>new MaxBenchmarkLauncher(sc,s))
     runBenches((sc, s)=>new MinBenchmarkLauncher(sc,s))
     runBenches((sc, s)=>new ReduceBenchmarkLauncher(sc,s))
-    runBenches((sc, s)=>new UnionBenchmarkLauncher(sc,s))
     runBenches((sc, s)=>new TakeBenchmarkLauncher(sc,s))
+    runBenches((sc, s)=>new UnionBenchmarkLauncher(sc,s))
   }
 }
 
+/**
+ * Main class for the benchmark program
+ * @param benches Implemented benchmarks to run
+ * @param printer output strategy. TODO: Consider refactoring to accepting Result objects for later analysis
+ */
 class BenchmarkRun(benches: Seq[BenchmarkLauncher], printer: PrintService){
 
+  /**
+   * Warms up all benchmarks, then runs the all method on each
+   * and finishes with the sql equivalent where applicable
+   */
   def exec(): Unit = {
     printer.println("start benchmarks")
     benches.foreach(b=>b.warmUp())

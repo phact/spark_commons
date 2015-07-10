@@ -16,24 +16,26 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
-import com.datastax.spark.connector.rdd._
-import com.datastax.spark.connector._
-import com.datastax.bdp.spark.DseSparkContext
 import org.apache.spark.SparkContext
-import org.apache.spark.SparkConf
-import org.apache.spark.rdd.RDD
+import org.apache.spark.SparkContext._
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
-import pro.foundev.commons.benchmarking._
-import org.apache.spark.SparkContext._
 
 
 /**
- * for now doing silly count to do local memory operation to fire the cogroup
- **/
+ * Cogroup comparison. Note: for now doing silly
+ * count to do local memory operation to fire the cogroup
+ * @param sc initialized Spark Context. This is needed to perform operations
+ * @param tableSuffix the convention here is a table will run against different record counts.
+ *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
+ */
 class CogroupBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
+  /**
+   * cogroups on the requested cassandra table
+   * @return should be result of benchmark run
+   */
   override def all():Result={
     val cogroupCount = timer.profile(()=>{
         cassandraPairRDD
@@ -43,10 +45,14 @@ class CogroupBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
     new Result("cogroup", timer.getMillis(), cogroupCount, tableSuffix)
   }
 
+  /**
+   *  sql equivalent ( I believe) to cogroup that joins a table on itself then groups by
+   * @return should be result of benchmark run
+   */
   override def sqlAll():Result={
     val cogroupCount  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT * from "+keyspace+"."+table+ tableSuffix + "a1 JOIN "+keyspace+"."+table+ tableSuffix + " a2 ON a1.id = a2.id GROUP BY id")
+        .sql("SELECT c0 from "+keyspace+"."+table+ tableSuffix + "a1 JOIN "+keyspace+"."+table+ tableSuffix + " a2 ON a1.id = a2.id GROUP BY id")
       rdd.count()
     })
     new Result("sqlCogroup", timer.getMillis(), cogroupCount, tableSuffix)

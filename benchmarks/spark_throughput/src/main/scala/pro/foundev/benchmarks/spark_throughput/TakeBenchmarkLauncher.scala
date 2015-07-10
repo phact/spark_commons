@@ -22,11 +22,18 @@ import org.apache.spark.sql.cassandra.CassandraSQLContext
 
 
 /**
- * for now doing silly count to do local memory operation to fire the groupBy
- **/
+ *
+ * @param sc initialized Spark Context. This is needed to perform operations
+ * @param tableSuffix the convention here is a table will run against different record counts.
+ *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
+ */
 class TakeBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
+  /**
+   * Simple take implementation
+   * @return should be result of benchmark run
+   */
   override def all():Result={
     timer.profile(()=>{
         cassandraRDD
@@ -35,10 +42,14 @@ class TakeBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
     new Result("take", timer.getMillis(), 1, tableSuffix)
   }
 
+  /**
+   * Limit 1...identical to SQL First benchmark
+   * @return should be result of benchmark run
+   */
   override def sqlAll():Result={
     val takeCount  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT value from "+keyspace+"."+table+ tableSuffix + " LIMIT 1")
+        .sql("SELECT * from "+keyspace+"."+table+ tableSuffix + " LIMIT 1")
       rdd.count()
     })
     new Result("sqlTake", timer.getMillis(), takeCount, tableSuffix)

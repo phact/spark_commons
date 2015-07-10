@@ -16,30 +16,42 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
-import com.datastax.spark.connector.rdd._
 import com.datastax.spark.connector._
 import org.apache.spark.SparkContext
-import org.apache.spark.SparkContext._
-import pro.foundev.commons.benchmarking.SystemTimer
-import pro.foundev.commons.benchmarking.Timer
+import pro.foundev.commons.benchmarking.{SystemTimer, Timer}
 
-/***
- * base class for benchmark launchers. subclass this to create a new benchmark calculation
- **/
+/**
+ * Base class for benchmark launchers. Subclass this to create a new benchmark type.
+ * @param sc initialized Spark Context. This is needed to perform operations
+ * @param tableSuffix the convention here is a table will run against different record counts.
+ *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
+ */
 abstract class BenchmarkLauncher(sc:SparkContext, tableSuffix: String) {
   var timer: Timer = new SystemTimer()
   val keyspace = "spark_test"
   val table = "records_"
   val cassandraRDD = sc.cassandraTable(keyspace, table+tableSuffix)
 //  val cassandraPairRDD = cassandraRDD.select("id", "value") //doesn't work in 1.2
-  val cassandraPairRDD = cassandraRDD.map(x=>(x.getUUID(0), x.getInt(1)))
+  val cassandraPairRDD = cassandraRDD.map(x=>(x.getUUID(0), x.getLong(1)))
+  //TODO: Move more common functions down here
 
+  /**
+   * runs all and sqlAll to get all serialization and caching out of the way should not be profiled
+   */
   def warmUp():Unit = {
     all()
     sqlAll()
   }
+
+  /**
+   * Spark code benchmark
+   * @return should be result of benchmark run
+   */
   def all():Result
+
+  /**
+   * Spark Sql code benchmark
+   * @return should be result of benchmark run
+   */
   def sqlAll():Result
 }
-
-
