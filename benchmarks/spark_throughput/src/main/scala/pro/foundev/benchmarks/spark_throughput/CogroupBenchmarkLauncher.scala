@@ -29,7 +29,7 @@ import org.apache.spark.SparkContext._
 
 
 /**
- * for now doing silly count to do local memory operation to fire the groupBy
+ * for now doing silly count to do local memory operation to fire the cogroup
  **/
 class CogroupBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
