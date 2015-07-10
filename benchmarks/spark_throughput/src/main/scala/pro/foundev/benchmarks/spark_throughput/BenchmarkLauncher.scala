@@ -30,6 +30,7 @@ abstract class BenchmarkLauncher(sc:SparkContext, tableSuffix: String) {
   var timer: Timer = new SystemTimer()
   val keyspace = "spark_test"
   val table = "records_"
+  val fullTable = keyspace + "." + table + tableSuffix
   val cassandraRDD = sc.cassandraTable(keyspace, table+tableSuffix)
 //  val cassandraPairRDD = cassandraRDD.select("id", "value") //doesn't work in 1.2
   val cassandraPairRDD = cassandraRDD.map(x=>(x.getUUID(0), x.getLong(1)))

@@ -50,11 +50,13 @@ class CogroupBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
    * @return should be result of benchmark run
    */
   override def sqlAll():Result={
+    /** sql co group proved too difficult to get correct
     val cogroupCount  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT c0 from "+keyspace+"."+table+ tableSuffix + " a1 JOIN "+keyspace+"."+table+ tableSuffix + " a2 ON a1.id = a2.id GROUP BY id")
+        .sql("SELECT a1.c0, a2.c0 from " + fullTable+ " a1 JOIN " + fullTable + " a2 on a1.id=a2.id GROUP BY a1.id, a1.c0, a2.c0")
       rdd.count()
     })
-    new Result("sqlCogroup", timer.getMillis(), cogroupCount, tableSuffix)
+    */
+    new Result("sqlCogroup N/A", 0,0, tableSuffix)
   }
 }
