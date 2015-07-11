@@ -38,8 +38,8 @@ class CountByBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
     val count = timer.profile(()=>{
         cassandraPairRDD
           .countByKey()
-    }).count(kvp=>true)
-    new Result("countBy", timer.getMillis(),count, tableSuffix)
+    })
+    new Result("countBy", timer.getMillis(),0, tableSuffix)
   }
 
   /**

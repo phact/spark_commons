@@ -51,7 +51,7 @@ class GroupByBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   override def sqlAll():Result={
     val groupByCount  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT c0 from "+keyspace+"."+table+ tableSuffix + " GROUP BY id")
+        .sql("SELECT c0 from "+keyspace+"."+table+ tableSuffix + " GROUP BY id, c0")
       rdd.count()
     })
     new Result("sqlGroupBy", timer.getMillis(), groupByCount, tableSuffix)

@@ -1,0 +1,72 @@
+sudo dse spark-submit --driver-memory 2g --executor-memory=2g --class pro.foundev.benchmarks.spark_throughput.BenchmarkRun spark_throughput-assembly.jar 10.240.31.25  spark://10.240.26.33:7077
+Java HotSpot(TM) 64-Bit Server VM warning: ignoring option MaxPermSize=256M; support was removed in 8.0
+start benchmarks
+232.555002 milliseconds to run cogroup on 10k records
+294.155222 milliseconds to run cogroup on 100k records
+14252.674896 milliseconds to run cogroup on 10m records
+benchmark done
+start benchmarks
+135.554449 milliseconds to run count on 10k records
+136.920203 milliseconds to run count on 100k records
+2596.101158 milliseconds to run count on 10m records
+benchmark done
+start benchmarks
+108.333963 milliseconds to run countBy on 10k records
+287.020735 milliseconds to run countBy on 100k records
+23697.227171 milliseconds to run countBy on 10m records
+benchmark done
+start benchmarks
+245.691886 milliseconds to run distinct on 10k records
+313.244686 milliseconds to run distinct on 100k records
+9410.01812 milliseconds to run distinct on 10m records
+benchmark done
+start benchmarks
+63.432728 milliseconds to run filter on 10k records
+93.273984 milliseconds to run filter on 100k records
+3754.014263 milliseconds to run filter on 10m records
+benchmark done
+start benchmarks
+58.206682 milliseconds to run first on 10k records
+58.72481 milliseconds to run first on 100k records
+207.287283 milliseconds to run first on 10m records
+benchmark done
+start benchmarks
+95.334849 milliseconds to run groupBy on 10k records
+309.00828 milliseconds to run groupBy on 100k records
+7123.855939 milliseconds to run groupBy on 10m records
+benchmark done
+start benchmarks
+141.101068 milliseconds to run intersect on 10k records
+318.120836 milliseconds to run intersect on 100k records
+14176.87045 milliseconds to run intersect on 10m records
+benchmark done
+start benchmarks
+105.014728 milliseconds to run join on 10k records
+271.052174 milliseconds to run join on 100k records
+13239.326188 milliseconds to run join on 10m records
+benchmark done
+start benchmarks
+47.098093 milliseconds to run max on 10k records
+98.926221 milliseconds to run max on 100k records
+3779.425057 milliseconds to run max on 10m records
+benchmark done
+start benchmarks
+43.405267 milliseconds to run min on 10k records
+82.852221 milliseconds to run min on 100k records
+3885.751126 milliseconds to run min on 10m records
+benchmark done
+start benchmarks
+3.979246 milliseconds to run reduceByKey on 10k records
+3.940045 milliseconds to run reduceByKey on 100k records
+4.033867 milliseconds to run reduceByKey on 10m records -- bogus
+benchmark done
+start benchmarks
+50.364668 milliseconds to run take on 10k records
+52.8979 milliseconds to run take on 100k records
+59.670822 milliseconds to run take on 10m records
+benchmark done
+start benchmarks
+65.877278 milliseconds to run union on 10k records
+94.175014 milliseconds to run union on 100k records
+7195.394475 milliseconds to run union on 10m records
+benchmark done

@@ -41,7 +41,7 @@ abstract class BenchmarkLauncher(sc:SparkContext, tableSuffix: String) {
    */
   def warmUp():Unit = {
     all()
-    sqlAll()
+   // sqlAll()
   }
 
   /**

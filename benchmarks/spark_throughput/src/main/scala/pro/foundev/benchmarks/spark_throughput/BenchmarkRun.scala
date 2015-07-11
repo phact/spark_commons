@@ -41,7 +41,7 @@ object BenchmarkRun {
       .setMaster(args(1))
     )
     val printer = new StdPrintService()
-    val tableSuffixes = Array("10k", "100k", "10m", "1b")
+    val tableSuffixes = Array("10k", "100k", "10m")
     val runBenches = ( fac: (SparkContext, String) => BenchmarkLauncher )=>{
       val benches = tableSuffixes.map(s=>fac(sc, s))
       new BenchmarkRun(benches, printer).exec()
@@ -78,7 +78,7 @@ class BenchmarkRun(benches: Seq[BenchmarkLauncher], printer: PrintService){
     printer.println("start benchmarks")
     benches.foreach(b=>b.warmUp())
     benches.foreach(b=>logResults(b.all))
-    benches.foreach(b=>logResults(b.sqlAll))
+  //  benches.foreach(b=>logResults(b.sqlAll))
     printer.println("benchmark done")
   }
 

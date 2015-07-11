@@ -53,7 +53,7 @@ class JoinBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   override def sqlAll():Result={
     val groupByCount  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT c0 from "+keyspace+"."+table+ tableSuffix + "a1 JOIN "+keyspace+"."+table+tableSuffix + " a2 ON a1.id = a2.id" )
+        .sql("SELECT c0 from "+keyspace+"."+table+ tableSuffix + " a1 JOIN "+keyspace+"."+table+tableSuffix + " a2 ON a1.id = a2.id" )
       rdd.count()
     })
     new Result("sqlJoin", timer.getMillis(), groupByCount, tableSuffix)
