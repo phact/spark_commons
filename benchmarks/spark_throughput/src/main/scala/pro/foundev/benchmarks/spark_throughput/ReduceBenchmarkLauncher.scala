@@ -36,7 +36,8 @@ class ReduceBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
     val groupByCount = timer.profile(()=>{
         cassandraPairRDD
         .reduceByKey(_ + _)
-    }).count()
+          .count()
+    })
     new Result("reduceByKey", timer.getMillis(), groupByCount, tableSuffix)
   }
 
