@@ -17,6 +17,7 @@
 package pro.foundev.benchmarks.spark_throughput
 
 import org.scalatest._
+import pro.foundev.benchmarks.spark_throughput.launchers.{MaxBenchmarkLauncher, BenchmarkLauncher}
 import pro.foundev.commons.test_support._
 import pro.foundev.commons.benchmarking._
 import scala.collection.mutable._

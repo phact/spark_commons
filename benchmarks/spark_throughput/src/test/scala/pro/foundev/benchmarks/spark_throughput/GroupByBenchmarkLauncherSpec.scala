@@ -16,6 +16,8 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
+import pro.foundev.benchmarks.spark_throughput.launchers.GroupByBenchmarkLauncher
+
 class GroupByBenchmarkLauncherSpec extends BenchmarkSupport {
 
   override def beforeEach {
@@ -25,25 +27,25 @@ class GroupByBenchmarkLauncherSpec extends BenchmarkSupport {
   }
 
   "A GroupByBenchmarkLauncher" should "get a groupBy count" in {
-    benchmarkLauncher.all.value should be (3l)
+    benchmarkLauncher.all()(0).value should be (3l)
   }
   it should "have the name of groupBy" in {
-    benchmarkLauncher.all.name should be ("groupBy")
+    benchmarkLauncher.all()(0).name should be ("groupBy")
 
   }
   it should "time the result" in {
     timer.setDuration(2000)
-    benchmarkLauncher.all.milliSeconds should be (0.002)
+    benchmarkLauncher.all()(0).milliSeconds should be (0.002)
   }
   "A GroupByBenchmarkLauncher with sql " should "get a sql groupBy count" in {
-    benchmarkLauncher.sqlAll.value should be (3l)
+    benchmarkLauncher.sqlAll()(0).value should be (3l)
   }
   it should "have the name of sqlGroupBy" in {
-    benchmarkLauncher.sqlAll.name should be ("sqlGroupBy")
+    benchmarkLauncher.sqlAll()(0).name should be ("sqlGroupBy")
   }
   it should "time the result of sqlGroupBy" in {
     timer.setDuration(2000)
-    benchmarkLauncher.sqlAll.milliSeconds should be (0.002)
+    benchmarkLauncher.sqlAll()(0).milliSeconds should be (0.002)
   }
 
 }

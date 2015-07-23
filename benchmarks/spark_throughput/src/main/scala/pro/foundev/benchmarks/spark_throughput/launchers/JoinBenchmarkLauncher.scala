@@ -14,46 +14,49 @@
  * limitations under the License.
  */
 
-package pro.foundev.benchmarks.spark_throughput
+package pro.foundev.benchmarks.spark_throughput.launchers
 
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
+import pro.foundev.benchmarks.spark_throughput.Result
 
 
 /**
- * Group by implementation
+ * Join benchmark
  * @param sc initialized Spark Context. This is needed to perform operations
  * @param tableSuffix the convention here is a table will run against different record counts.
  *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
  */
-class GroupByBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
+class JoinBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
   /**
-   * Group by executed on pairRDD. Note: Purpose of count is to execute results of groupBy
+   * Join executed on pairRDD. Note: Purpose of count is to execute results of join
+   * Performs Join on the same table twice
    * @return should be result of benchmark run
    */
-  override def all():Result={
-    val groupByCount = timer.profile(()=>{
+  override def all():Seq[Result]={
+    val joinCount = timer.profile(()=>{
         cassandraPairRDD
-        .groupByKey()
+        .join(cassandraPairRDD)
         .count()
     })
-    new Result("groupBy", timer.getMillis(), groupByCount, tableSuffix)
+    Seq(new Result("join", timer.getMillis(), joinCount, tableSuffix))
   }
 
   /**
-   * Group by using Spark SQL. Note: Purpose of count is to execute results of groupBy
+   * Join executed via Spark SQL. Note: Purpose of count is to execute results of join
+   * Performs Join on the same table twice
    * @return should be result of benchmark run
    */
-  override def sqlAll():Result={
+  override def sqlAll():Seq[Result]={
     val groupByCount  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT c0 from "+keyspace+"."+table+ tableSuffix + " GROUP BY id, c0")
+        .sql("SELECT c0 from "+keyspace+"."+table+ tableSuffix + " a1 JOIN "+keyspace+"."+table+tableSuffix + " a2 ON a1.id = a2.id" )
       rdd.count()
     })
-    new Result("sqlGroupBy", timer.getMillis(), groupByCount, tableSuffix)
+    Seq(new Result("sqlJoin", timer.getMillis(), groupByCount, tableSuffix))
   }
 }

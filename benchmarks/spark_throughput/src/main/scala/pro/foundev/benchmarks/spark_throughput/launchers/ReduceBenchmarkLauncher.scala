@@ -14,45 +14,39 @@
  * limitations under the License.
  */
 
-package pro.foundev.benchmarks.spark_throughput
+package pro.foundev.benchmarks.spark_throughput.launchers
 
-import com.datastax.spark.connector._
 import org.apache.spark.SparkContext
-import pro.foundev.commons.benchmarking.{SystemTimer, Timer}
+import org.apache.spark.SparkContext._
+import pro.foundev.benchmarks.spark_throughput.Result
 
 /**
- * Base class for benchmark launchers. Subclass this to create a new benchmark type.
+ * Reduce benchmark. should show favorably against groupBy
  * @param sc initialized Spark Context. This is needed to perform operations
  * @param tableSuffix the convention here is a table will run against different record counts.
  *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
  */
-abstract class BenchmarkLauncher(sc:SparkContext, tableSuffix: String) {
-  var timer: Timer = new SystemTimer()
-  val keyspace = "spark_test"
-  val table = "records_"
-  val fullTable = keyspace + "." + table + tableSuffix
-  val cassandraRDD = sc.cassandraTable(keyspace, table+tableSuffix)
-//  val cassandraPairRDD = cassandraRDD.select("id", "value") //doesn't work in 1.2
-  val cassandraPairRDD = cassandraRDD.map(x=>(x.getUUID(0), x.getLong(1)))
-  //TODO: Move more common functions down here
+class ReduceBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
+  extends BenchmarkLauncher(sc, tableSuffix) {
 
   /**
-   * runs all and sqlAll to get all serialization and caching out of the way should not be profiled
+   * Standard reduce by key
+   * @return should be result of benchmark run
    */
-  def warmUp():Unit = {
-    all()
-   // sqlAll()
+  override def all():Seq[Result]={
+    val groupByCount = timer.profile(()=>{
+        cassandraPairRDD
+        .reduceByKey(_ + _)
+          .count()
+    })
+    Seq(new Result("reduceByKey", timer.getMillis(), groupByCount, tableSuffix))
   }
 
   /**
-   * Spark code benchmark
+   * No equivalent for reduce in SQL
    * @return should be result of benchmark run
    */
-  def all():Result
-
-  /**
-   * Spark Sql code benchmark
-   * @return should be result of benchmark run
-   */
-  def sqlAll():Result
+  override def sqlAll():Seq[Result]={
+    Seq(new Result("reduceBy not available", 0,0, tableSuffix))
+  }
 }

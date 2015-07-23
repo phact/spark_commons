@@ -13,49 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pro.foundev.benchmarks.spark_throughput
 
-import org.apache.spark.sql.cassandra.CassandraSQLContext
+package pro.foundev.benchmarks.spark_throughput.launchers
+
 import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SchemaRDD
+import org.apache.spark.sql.cassandra.CassandraSQLContext
+import pro.foundev.benchmarks.spark_throughput.Result
 
 /**
- * Max benchmark
+ * Simple benchmark of RDD.first
  * @param sc initialized Spark Context. This is needed to perform operations
  * @param tableSuffix the convention here is a table will run against different record counts.
  *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
  */
-class MaxBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
+class FirstBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
   /**
-   * Uses reduce method to get max
+   * Simple retrieval of first record using RDD.first()
    * @return should be result of benchmark run
    */
-  override def all():Result={
-    val max = timer.profile(()=>{
-      cassandraValues()
-      .reduce((v1,v2)=>if(v1>v2){v1}; else{v2})
+  override def all():Seq[Result]={
+    timer.profile(()=>{
+        cassandraRDD
+        .first()
     })
-    new Result("max", timer.getMillis(), max, tableSuffix)
+    Seq(new Result("first", timer.getMillis(), 1, tableSuffix))
   }
 
   /**
-   * Spark Sql implementation of Max.
+   * SQL limit 1 should be equivalent to RDD.first()
    * @return should be result of benchmark run
    */
-  override def sqlAll():Result={
-    val max = timer.profile(()=>{
+  override def sqlAll():Seq[Result]={
+    timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT MAX(c0) from "+keyspace+"."+table+ tableSuffix)
-      rdd.collect()
-    })(0)(0).toString.toLong
-    new Result("sqlMax", timer.getMillis(), max, tableSuffix)
-  }
-
-  private def cassandraValues(): RDD[Long] = {
-    cassandraRDD
-      .map(row=>row.getLong(1))
+        .sql("SELECT * from "+keyspace+"."+table+ tableSuffix + " LIMIT 1")
+      rdd.count()
+    })
+    Seq(new Result("sqlFirst", timer.getMillis(), 1, tableSuffix))
   }
 }

@@ -16,9 +16,16 @@
 
 package pro.foundev.commons.benchmarking
 
-class StdPrintService extends PrintService {
+import java.io.{File, FileWriter, BufferedWriter}
+
+class FilePrintService(fileUrl: String) extends PrintService with AutoCloseable {
+  val file = new BufferedWriter(new FileWriter(new File(fileUrl)))
   def println(message: String) = {
-    Predef.println(message)
+    file.write(message)
+    file.newLine()
+  }
+
+  override def close(): Unit = {
+    file.close
   }
 }
-

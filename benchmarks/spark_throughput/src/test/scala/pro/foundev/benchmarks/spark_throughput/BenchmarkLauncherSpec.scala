@@ -16,6 +16,8 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
+import pro.foundev.benchmarks.spark_throughput.launchers.BenchmarkLauncher
+
 import scala.collection.mutable._
 
 class BenchmarkLauncherSpec extends BenchmarkSupport {
@@ -24,12 +26,12 @@ class BenchmarkLauncherSpec extends BenchmarkSupport {
     val allSpy = ArrayBuffer.empty[Long]
     val sqlSpy = ArrayBuffer.empty[Long]
     val launcher = new BenchmarkLauncher(sc, "10k") {
-      override def all(): Result = {
+      override def all(): Seq[Result] = {
         allSpy += 2
         null
       }
 
-      override def sqlAll(): Result = {
+      override def sqlAll(): Seq[Result] = {
         sqlSpy += 3
         null
       }

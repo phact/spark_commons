@@ -14,38 +14,48 @@
  * limitations under the License.
  */
 
-package pro.foundev.benchmarks.spark_throughput
+package pro.foundev.benchmarks.spark_throughput.launchers
 
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
+import pro.foundev.benchmarks.spark_throughput.Result
+
 
 /**
- * Reduce benchmark. should show favorably against groupBy
+ * Cogroup comparison. Note: for now doing silly
+ * count to do local memory operation to fire the cogroup
  * @param sc initialized Spark Context. This is needed to perform operations
  * @param tableSuffix the convention here is a table will run against different record counts.
  *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
  */
-class ReduceBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
+class CogroupBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
   /**
-   * Standard reduce by key
+   * cogroups on the requested cassandra table
    * @return should be result of benchmark run
    */
-  override def all():Result={
-    val groupByCount = timer.profile(()=>{
+  override def all():Seq[Result]={
+    val cogroupCount = timer.profile(()=>{
         cassandraPairRDD
-        .reduceByKey(_ + _)
-          .count()
+        .cogroup(cassandraPairRDD)
+        .count()
     })
-    new Result("reduceByKey", timer.getMillis(), groupByCount, tableSuffix)
+    Seq(new Result("cogroup", timer.getMillis(), cogroupCount, tableSuffix))
   }
 
   /**
-   * No equivalent for reduce in SQL
+   *  sql equivalent ( I believe) to cogroup that joins a table on itself then groups by
    * @return should be result of benchmark run
    */
-  override def sqlAll():Result={
-    new Result("reduceBy not available", 0,0, tableSuffix)
+  override def sqlAll():Seq[Result]={
+    /** sql co group proved too difficult to get correct
+    val cogroupCount  = timer.profile(()=>{
+      val rdd: SchemaRDD = new CassandraSQLContext(sc)
+        .sql("SELECT a1.c0, a2.c0 from " + fullTable+ " a1 JOIN " + fullTable + " a2 on a1.id=a2.id GROUP BY a1.id, a1.c0, a2.c0")
+      rdd.count()
+    })
+    */
+    Seq(new Result("sqlCogroup N/A", 0,0, tableSuffix))
   }
 }

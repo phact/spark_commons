@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package pro.foundev.benchmarks.spark_throughput
+package pro.foundev.benchmarks.spark_throughput.launchers
 
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
+import pro.foundev.benchmarks.spark_throughput.Result
 
 /**
  * for now doing silly count to do local memory operation to fire the union op
@@ -30,25 +31,25 @@ class UnionBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
    *
    * @return should be result of benchmark run
    */
-  override def all():Result={
+  override def all():Seq[Result]={
     val unionCount = timer.profile(()=>{
       cassandraPairRDD.union(cassandraPairRDD)
       .count()
     })
-    new Result("union", timer.getMillis(), unionCount, tableSuffix)
+    Seq(new Result("union", timer.getMillis(), unionCount, tableSuffix))
   }
 
   /**
    *
    * @return should be result of benchmark run
    */
-  override def sqlAll():Result={
+  override def sqlAll():Seq[Result]={
     val unionCount  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
         .sql("SELECT * from "+keyspace+"."+table+ tableSuffix + " UNION ALL"+
         "SELECT * from "+keyspace+"."+table+ tableSuffix)
       rdd.count()
     })
-    new Result("sqlUnion", timer.getMillis(), unionCount, tableSuffix)
+    Seq(new Result("sqlUnion", timer.getMillis(), unionCount, tableSuffix))
   }
 }

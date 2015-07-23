@@ -20,6 +20,7 @@ package pro.foundev.benchmarks.spark_throughput
 import java.util.UUID
 
 import org.scalatest._
+import pro.foundev.benchmarks.spark_throughput.launchers.BenchmarkLauncher
 import pro.foundev.commons.test_support._
 
 class BenchmarkSupport extends CommonsTestSupport {

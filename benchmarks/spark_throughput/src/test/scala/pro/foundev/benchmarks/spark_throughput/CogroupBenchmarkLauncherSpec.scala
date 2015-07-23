@@ -16,6 +16,8 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
+import pro.foundev.benchmarks.spark_throughput.launchers.CogroupBenchmarkLauncher
+
 class CogroupBenchmarkLauncherSpec extends BenchmarkSupport {
 
   override def beforeEach {
@@ -25,15 +27,15 @@ class CogroupBenchmarkLauncherSpec extends BenchmarkSupport {
   }
 
   "A CogroupBenchmarkLauncher" should "get a cogroup count" in {
-    benchmarkLauncher.all.value should be (3l)
+    benchmarkLauncher.all()(0).value should be (3l)
   }
   it should "have the name of cogroup" in {
-    benchmarkLauncher.all.name should be ("cogroup")
+    benchmarkLauncher.all()(0).name should be ("cogroup")
 
   }
   it should "time the result" in {
     timer.setDuration(2000)
-    benchmarkLauncher.all.milliSeconds should be (0.002)
+    benchmarkLauncher.all()(0).milliSeconds should be (0.002)
   }
   /** sql co group proved too hard
   "A CogroupBenchmarkLauncher" should "get a sql cogroup count" in {

@@ -16,6 +16,8 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
+import pro.foundev.benchmarks.spark_throughput.launchers.MinBenchmarkLauncher
+
 class MinBenchmarkLauncherSpec extends BenchmarkSupport {
 
   override def beforeEach {
@@ -25,23 +27,23 @@ class MinBenchmarkLauncherSpec extends BenchmarkSupport {
   }
 
   "A MinBenchmarkLauncher" should "get a min value" in {
-    benchmarkLauncherMin10k.all.value should be (1l)
+    benchmarkLauncherMin10k.all()(0).value should be (1l)
   }
   it should "have the name of min" in {
-    benchmarkLauncherMin10k.all.name should be ("min")
+    benchmarkLauncherMin10k.all()(0).name should be ("min")
   }
   it should "time the result" in {
     timer.setDuration(2000)
-    benchmarkLauncherMin10k.all.milliSeconds should be (0.002)
+    benchmarkLauncherMin10k.all()(0).milliSeconds should be (0.002)
   }
   "A MinBenchmarkLauncher" should "get a sqlMin value" in {
-    benchmarkLauncherMin10k.sqlAll.value should be (1l)
+    benchmarkLauncherMin10k.sqlAll()(0).value should be (1l)
   }
   it should "have the name of sqlMin" in {
-    benchmarkLauncherMin10k.sqlAll.name should be ("sqlMin")
+    benchmarkLauncherMin10k.sqlAll()(0).name should be ("sqlMin")
   }
   it should "time the result of sqlMin" in {
     timer.setDuration(2000)
-    benchmarkLauncherMin10k.sqlAll.milliSeconds should be (0.002)
+    benchmarkLauncherMin10k.sqlAll()(0).milliSeconds should be (0.002)
   }
  }

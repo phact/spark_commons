@@ -14,49 +14,49 @@
  * limitations under the License.
  */
 
-package pro.foundev.benchmarks.spark_throughput
+package pro.foundev.benchmarks.spark_throughput.launchers
 
 import org.apache.spark.SparkContext
-import org.apache.spark.SparkContext._
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
+import pro.foundev.benchmarks.spark_throughput.Result
 
 
 /**
- * Cogroup comparison. Note: for now doing silly
- * count to do local memory operation to fire the cogroup
+ * Intersection benchmark
  * @param sc initialized Spark Context. This is needed to perform operations
  * @param tableSuffix the convention here is a table will run against different record counts.
  *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
  */
-class CogroupBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
+class IntersectBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
   /**
-   * cogroups on the requested cassandra table
+   * Intersection executed on pairRDD. Note: Purpose of count is to execute results of intersection
+   * Performs intersection on the same table twice
    * @return should be result of benchmark run
    */
-  override def all():Result={
-    val cogroupCount = timer.profile(()=>{
+  override def all():Seq[Result]={
+    val intersectCount = timer.profile(()=>{
         cassandraPairRDD
-        .cogroup(cassandraPairRDD)
+        .intersection(cassandraPairRDD)
         .count()
     })
-    new Result("cogroup", timer.getMillis(), cogroupCount, tableSuffix)
+    Seq(new Result("intersect", timer.getMillis(), intersectCount, tableSuffix))
   }
 
   /**
-   *  sql equivalent ( I believe) to cogroup that joins a table on itself then groups by
+   * Intersection using Spark SQL. Note: Purpose of count is to execute results of intersection
+   * Performs intersection on the same table twice
    * @return should be result of benchmark run
    */
-  override def sqlAll():Result={
-    /** sql co group proved too difficult to get correct
-    val cogroupCount  = timer.profile(()=>{
+  override def sqlAll():Seq[Result]={
+    val intersect  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT a1.c0, a2.c0 from " + fullTable+ " a1 JOIN " + fullTable + " a2 on a1.id=a2.id GROUP BY a1.id, a1.c0, a2.c0")
+        .sql("SELECT * from "+keyspace+"."+table+ tableSuffix + " INTERSECT" +
+        " SELECT * from "+keyspace+"."+table+ tableSuffix)
       rdd.count()
     })
-    */
-    new Result("sqlCogroup N/A", 0,0, tableSuffix)
+    Seq(new Result("sqlIntersect", timer.getMillis(), intersect, tableSuffix))
   }
 }

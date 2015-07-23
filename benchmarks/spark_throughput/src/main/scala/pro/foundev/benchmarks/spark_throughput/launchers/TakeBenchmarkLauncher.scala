@@ -14,47 +14,45 @@
  * limitations under the License.
  */
 
-package pro.foundev.benchmarks.spark_throughput
+package pro.foundev.benchmarks.spark_throughput.launchers
 
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
+import pro.foundev.benchmarks.spark_throughput.Result
+
 
 /**
  *
- * Count benchmark. Relies on the Spark Cassandra Connector count operations
- * for now doing silly count to do local memory operation to fire the groupBy
  * @param sc initialized Spark Context. This is needed to perform operations
  * @param tableSuffix the convention here is a table will run against different record counts.
  *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
  */
-class CountBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
+class TakeBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
   /**
-   * Does a simple count. This will underneath use the Spark Cassandra Connector's implementation of count and
-   * not the traditional approach to counting that Spark uses
+   * Simple take implementation
    * @return should be result of benchmark run
    */
-  override def all():Result={
-    val count = timer.profile(()=>{
+  override def all():Seq[Result]={
+    timer.profile(()=>{
         cassandraRDD
-        .count()
+        .take(1)
     })
-    new Result("count", timer.getMillis(), count, tableSuffix)
+    Seq(new Result("take", timer.getMillis(), 1, tableSuffix))
   }
 
   /**
-   *  This SHOULD behave the same way as CassandraTableScanRDD.count()
-   *  TODO: verify underlying implementation
+   * Limit 1...identical to SQL First benchmark
    * @return should be result of benchmark run
    */
-  override def sqlAll():Result={
-    val count  = timer.profile(()=>{
+  override def sqlAll():Seq[Result]={
+    val takeCount  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT COUNT(*) from "+keyspace+"."+table+ tableSuffix)
+        .sql("SELECT * from "+keyspace+"."+table+ tableSuffix + " LIMIT 1")
       rdd.count()
     })
-    new Result("sqlCount", timer.getMillis(), count, tableSuffix)
+    Seq(new Result("sqlTake", timer.getMillis(), takeCount, tableSuffix))
   }
 }

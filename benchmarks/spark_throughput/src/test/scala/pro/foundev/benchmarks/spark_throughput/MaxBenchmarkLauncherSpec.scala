@@ -16,6 +16,8 @@
 
 package pro.foundev.benchmarks.spark_throughput
 
+import pro.foundev.benchmarks.spark_throughput.launchers.MaxBenchmarkLauncher
+
 class MaxBenchmarkLauncherSpec extends BenchmarkSupport {
 
   override def beforeEach {
@@ -25,25 +27,25 @@ class MaxBenchmarkLauncherSpec extends BenchmarkSupport {
   }
 
   "A MaxBenchmarkLauncher" should "get a max value" in {
-    benchmarkLauncher.all.value should be (10L)
+    benchmarkLauncher.all()(0).value should be (10L)
   }
   it should "have the name of max" in {
-    benchmarkLauncher.all.name should be ("max")
+    benchmarkLauncher.all()(0).name should be ("max")
 
   }
   it should "time the result" in {
     timer.setDuration(2000)
-    benchmarkLauncher.all.milliSeconds should be (0.002)
+    benchmarkLauncher.all()(0).milliSeconds should be (0.002)
   }
   "A MaxBenchmarkLauncher" should "get a sqlMax value" in {
-    benchmarkLauncher.sqlAll.value should be (10L)
+    benchmarkLauncher.sqlAll()(0).value should be (10L)
   }
   it should "have the name of sqlMax" in {
-    benchmarkLauncher.sqlAll.name should be ("sqlMax")
+    benchmarkLauncher.sqlAll()(0).name should be ("sqlMax")
   }
   it should "time the result of sqlMax" in {
     timer.setDuration(2000)
-    benchmarkLauncher.sqlAll.milliSeconds should be (0.002)
+    benchmarkLauncher.sqlAll()(0).milliSeconds should be (0.002)
   }
 
 }

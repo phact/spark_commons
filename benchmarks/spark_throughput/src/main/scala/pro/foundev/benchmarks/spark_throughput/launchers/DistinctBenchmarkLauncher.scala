@@ -14,44 +14,49 @@
  * limitations under the License.
  */
 
-package pro.foundev.benchmarks.spark_throughput
+package pro.foundev.benchmarks.spark_throughput.launchers
 
+import com.datastax.spark.connector._
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
+import pro.foundev.benchmarks.spark_throughput.Result
 
 
 /**
- *
+ * Benchmarks RDD.distinct()
+ * Note: there is an extra count to make distinct execute
  * @param sc initialized Spark Context. This is needed to perform operations
  * @param tableSuffix the convention here is a table will run against different record counts.
  *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
  */
-class TakeBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
+class DistinctBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
   /**
-   * Simple take implementation
+   * Implementation of RDD.distinct()
    * @return should be result of benchmark run
    */
-  override def all():Result={
-    timer.profile(()=>{
+  override def all():Seq[Result]={
+    val distinctCount = timer.profile(()=>{
         cassandraRDD
-        .take(1)
+        .select("c0")
+        .distinct()
+        .count()
     })
-    new Result("take", timer.getMillis(), 1, tableSuffix)
+    Seq(new Result("distinct", timer.getMillis(), distinctCount, tableSuffix))
   }
 
   /**
-   * Limit 1...identical to SQL First benchmark
+   * Spark SQL implementation of distinct
    * @return should be result of benchmark run
    */
-  override def sqlAll():Result={
-    val takeCount  = timer.profile(()=>{
+  override def sqlAll():Seq[Result]={
+    val distinctCount  = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT * from "+keyspace+"."+table+ tableSuffix + " LIMIT 1")
+        .sql("SELECT DISTINCT(c0) from "+keyspace+"."+table+ tableSuffix)
       rdd.count()
     })
-    new Result("sqlTake", timer.getMillis(), takeCount, tableSuffix)
+    Seq(new Result("sqlDistinct", timer.getMillis(), distinctCount, tableSuffix))
   }
 }

@@ -13,49 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package pro.foundev.benchmarks.spark_throughput.launchers
 
-package pro.foundev.benchmarks.spark_throughput
-
-import com.datastax.spark.connector._
 import org.apache.spark.SparkContext
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
-
+import pro.foundev.benchmarks.spark_throughput.Result
 
 /**
- * Benchmarks RDD.distinct()
- * Note: there is an extra count to make distinct execute
+ * Min benchmark. Should be the same as max.
  * @param sc initialized Spark Context. This is needed to perform operations
  * @param tableSuffix the convention here is a table will run against different record counts.
  *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
  */
-class DistinctBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
+class MinBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
   /**
-   * Implementation of RDD.distinct()
+   * Spark RDD.max implementation
    * @return should be result of benchmark run
    */
-  override def all():Result={
-    val distinctCount = timer.profile(()=>{
-        cassandraRDD
-        .select("c0")
-        .distinct()
-        .count()
+  override def all():Seq[Result]={
+    val max = timer.profile(()=>{
+      cassandraValues()
+      .reduce((v1,v2)=>if(v1<v2){v1}; else{v2})
     })
-    new Result("distinct", timer.getMillis(), distinctCount, tableSuffix)
+    Seq(new Result("min", timer.getMillis(), max, tableSuffix))
   }
 
   /**
-   * Spark SQL implementation of distinct
+   * Spark SQL version of min
    * @return should be result of benchmark run
    */
-  override def sqlAll():Result={
-    val distinctCount  = timer.profile(()=>{
+  override def sqlAll():Seq[Result]={
+    val max = timer.profile(()=>{
       val rdd: SchemaRDD = new CassandraSQLContext(sc)
-        .sql("SELECT DISTINCT(c0) from "+keyspace+"."+table+ tableSuffix)
-      rdd.count()
-    })
-    new Result("sqlDistinct", timer.getMillis(), distinctCount, tableSuffix)
+        .sql("SELECT MIN(c0) from "+keyspace+"."+table+ tableSuffix)
+      rdd.collect()
+    })(0)(0).toString.toLong
+    Seq(new Result("sqlMin", timer.getMillis(), max, tableSuffix))
+  }
+  private def cassandraValues(): RDD[Long] = {
+    cassandraRDD
+      .map(row=>row.getLong(1))
   }
 }
+
+
+

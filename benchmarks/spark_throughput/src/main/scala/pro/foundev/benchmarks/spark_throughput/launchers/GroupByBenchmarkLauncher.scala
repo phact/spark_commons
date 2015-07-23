@@ -14,44 +14,47 @@
  * limitations under the License.
  */
 
-package pro.foundev.benchmarks.spark_throughput
+package pro.foundev.benchmarks.spark_throughput.launchers
 
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
+import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.sql.cassandra.CassandraSQLContext
+import pro.foundev.benchmarks.spark_throughput.Result
+
 
 /**
- * Will count by key, should always be 1
+ * Group by implementation
  * @param sc initialized Spark Context. This is needed to perform operations
  * @param tableSuffix the convention here is a table will run against different record counts.
  *                    So spark_test.records_1b in this case the tableSuffix would be "1b"
  */
-class CountByBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
+class GroupByBenchmarkLauncher(sc:SparkContext, tableSuffix: String)
   extends BenchmarkLauncher(sc, tableSuffix) {
 
   /**
-   * countByKey implementation. The RDD.count op is moved outside timer as response will come back in countBy. TODO: Concerned
-   * this may pollute benchmarking
+   * Group by executed on pairRDD. Note: Purpose of count is to execute results of groupBy
    * @return should be result of benchmark run
    */
-  override def all():Result={
-    val count = timer.profile(()=>{
+  override def all():Seq[Result]={
+    val groupByCount = timer.profile(()=>{
         cassandraPairRDD
-          .countByKey()
+        .groupByKey()
+        .count()
     })
-    new Result("countBy", timer.getMillis(),0, tableSuffix)
+    Seq(new Result("groupBy", timer.getMillis(), groupByCount, tableSuffix))
   }
 
   /**
-   * Spark SQL version of countByKey.
+   * Group by using Spark SQL. Note: Purpose of count is to execute results of groupBy
    * @return should be result of benchmark run
    */
-  override def sqlAll():Result={
-    val countByCount  = timer.profile(()=> {
-      new CassandraSQLContext(sc)
-        .sql("SELECT COUNT(c0) from " + keyspace + "." + table + tableSuffix + " GROUP BY id")
-      .count()
+  override def sqlAll():Seq[Result]={
+    val groupByCount  = timer.profile(()=>{
+      val rdd: SchemaRDD = new CassandraSQLContext(sc)
+        .sql("SELECT c0 from "+keyspace+"."+table+ tableSuffix + " GROUP BY id, c0")
+      rdd.count()
     })
-    new Result("sqlCountBy", timer.getMillis(), countByCount, tableSuffix)
+    Seq(new Result("sqlGroupBy", timer.getMillis(), groupByCount, tableSuffix))
   }
 }
