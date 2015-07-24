@@ -28,12 +28,12 @@ class CacheBenchmarkLauncher(sc: SparkContext, tableSuffix: String, st: StorageL
    * @return should be result of benchmark run
    */
   override def all(): Seq[Result] = {
-    cassandraRDD.persist(st)
-    val firstRunCount = timer.profile(()=>cassandraRDD.count())
+    cassandraPairRDD.persist(st)
+    val firstRunCount = timer.profile(()=>cassandraPairRDD.count())
     val firstResult = new Result("firstRun " + StorageLevel.toString, timer.getMillis(), firstRunCount, tableSuffix)
-    val secondRunCount = timer.profile(()=>cassandraRDD.count())
+    val secondRunCount = timer.profile(()=>cassandraPairRDD.count())
     val secondResult = new Result("secondRun " + StorageLevel.toString, timer.getMillis(), secondRunCount, tableSuffix)
-    cassandraRDD.unpersist(true)
+    cassandraPairRDD.unpersist(true)
     Seq(firstResult, secondResult)
   }
 
