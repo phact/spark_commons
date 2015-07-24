@@ -5,4 +5,4 @@ populate tables by running the following cassandra stress commands with the give
 
 ran tests with the following command and configuration options:
 
-    sudo dse spark-submit --driver-memory 2g --executor-memory=2g --class pro.foundev.benchmarks.spark_throughput.launcher.OperationThroughputLauncher spark_throughput-assembly.jar 10.240.31.25  spark://10.240.26.33:7077
+    sudo dse spark-submit --driver-memory 2g --executor-memory=2g --class pro.foundev.benchmarks.spark_throughput.OperationThroughputBenchmarkRunner spark_throughput-assembly.jar 10.240.31.25  spark://10.240.26.33:7077

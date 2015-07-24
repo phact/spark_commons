@@ -30,7 +30,6 @@ class BenchmarkRun(benches: Seq[BenchmarkLauncher], printer: PrintService){
    * and finishes with the sql equivalent where applicable
    */
   def exec(): Unit = {
-    printer.println("operation, records, ")
     benches.foreach(b=>b.warmUp())
     benches.foreach(b=>logResults(b.all))
   //  benches.foreach(b=>logResults(b.sqlAll))
