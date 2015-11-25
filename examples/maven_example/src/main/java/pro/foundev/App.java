@@ -32,8 +32,7 @@ public class App {
     public static void main(String[] args){
 
         SparkConf conf = new SparkConf()
-                .setAppName( "My application")
-                .forDse;
+                .setAppName( "My application");
         JavaSparkContext sc = new JavaSparkContext(conf);
         CassandraConnector connector = CassandraConnector.apply(sc.getConf());
 
